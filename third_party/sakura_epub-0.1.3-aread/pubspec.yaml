@@ -1,0 +1,76 @@
+name: sakura_epub
+description: "A full-featured Flutter EPUB reader package. Render EPUB 2 & 3 books with annotations, search, themes, and programmatic navigation — powered by epub.js."
+version: 0.1.3
+homepage: https://github.com/northernwolf00/sakura_epub
+
+environment:
+  sdk: ^3.6.0
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_inappwebview: ^6.1.5
+  http: ^1.3.0
+  json_annotation: ^4.9.0
+  
+    
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  
+  flutter_lints: ^3.0.0
+  build_runner: ^2.3.3
+  json_serializable: ^6.6.0
+
+flutter:
+
+  assets:
+    - assets/images/
+    - lib/assets/fonts/
+    - lib/assets/webpage/dist/
+    - lib/assets/webpage/html/
+  
+
+
+
+  fonts:
+    #book fonts (proprietary ones from upstream are not published here)
+
+    - family: Alegreya
+      fonts:
+        - asset: lib/assets/fonts/Alegreya.ttf
+    - family: Atkinson Hyperlegible
+      fonts:
+        - asset: lib/assets/fonts/AtkinsonHyperlegible-Regular.ttf
+    - family: Bitter Pro
+      fonts:
+        - asset: lib/assets/fonts/BitterPro-Regular.ttf
+    - family: Droid Sans
+      fonts:
+        - asset: lib/assets/fonts/DroidSans.ttf
+    - family: EB Garamond
+      fonts:
+        - asset: lib/assets/fonts/EBGaramond-Var.ttf
+    - family: Gentium Book Plus
+      fonts:
+        - asset: lib/assets/fonts/GentiumBookPlus-Regular.ttf
+    - family: Halant
+      fonts:
+        - asset: lib/assets/fonts/Halant-Regular.ttf
+    - family: IBM Plex Sans
+      fonts:
+        - asset: lib/assets/fonts/IBMPlexSans-Regular.ttf
+    - family: LinLibertine
+      fonts:
+        - asset: lib/assets/fonts/LinLibertine-Regular.ttf
+    - family: Literata
+      fonts:
+        - asset: lib/assets/fonts/Literata-Var.ttf
+    - family: Lora
+      fonts:
+        - asset: lib/assets/fonts/Lora-Var.ttf
+    - family: Ubuntu
+      fonts:
+        - asset: lib/assets/fonts/Ubuntu-Var.ttf

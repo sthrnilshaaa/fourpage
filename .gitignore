@@ -1,0 +1,94 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be included in version control, so this line
+# is commented out by default.
+#.vscode/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+/coverage/
+**/build/
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# Stray SQLite file created by AppDatabase's headless-test fallback path
+# (path_provider unavailable outside a real device/emulator)
+aread_v1_test.db
+
+# User-supplied sample books for the native reader spike
+/test-books/private/
+
+# Built APK/AAB copies kept for sideloading (publish them as GitHub
+# Release assets instead of committing them)
+/dist/
+*.apk
+*.aab
+
+# Book files written by the headless-test fallback of LibraryController
+/app_books/
+
+# Generated knowledge graph (rebuild with `graphify update .`)
+/graphify-out/
+
+# Local AI-assistant / tooling state
+/.claude/
+/.superpowers/
+/CLAUDE.md
+/.graphifyignore
+
+# Local sample books (some are commercial titles - never publish them)
+/E-pub_book_demo/
+
+# Release signing (CI writes these from secrets; never commit them)
+/android/key.properties
+*.jks
+*.keystore
+
+# Kotlin compiler daemon state
+/android/.kotlin/
+
+# Kept locally only (not published): project docs, design data, sample books
+/docs/
+/design/
+/test-books/
+
+# Proprietary fonts from upstream sakura_epub: kept locally, never published
+/third_party/sakura_epub-0.1.3-aread/lib/assets/fonts/Bookerly.ttf
+/third_party/sakura_epub-0.1.3-aread/lib/assets/fonts/Amazon-Ember-Regular.ttf
+/third_party/sakura_epub-0.1.3-aread/lib/assets/fonts/NewYork.ttf
+/third_party/sakura_epub-0.1.3-aread/lib/assets/fonts/NewYork.otf
+/third_party/sakura_epub-0.1.3-aread/lib/assets/fonts/Gilroy-Medium.ttf

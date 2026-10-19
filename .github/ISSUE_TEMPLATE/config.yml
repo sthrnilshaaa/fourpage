@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Support the project
+    url: https://ko-fi.com/L2L124TL7L
+    about: Fourpages is free and has no ads. A coffee keeps it going.
+  - name: Security problem
+    url: https://github.com/sthrnilshaaa/fourpages/security/advisories/new
+    about: Please report security issues privately, not as a public issue.

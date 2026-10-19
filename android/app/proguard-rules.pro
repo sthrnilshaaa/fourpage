@@ -1,0 +1,25 @@
+# Flutter InAppWebView and WebView rules
+-keepattributes *Annotation*
+-keepattributes JavascriptInterface
+
+-keepclassmembers class * {
+    @android.webkit.JavascriptInterface <methods>;
+}
+
+-keepclassmembers class * extends android.webkit.WebViewClient {
+    public void *(android.webkit.WebView, java.lang.String, android.graphics.Bitmap);
+    public boolean *(android.webkit.WebView, java.lang.String);
+    public void *(android.webkit.webView, java.lang.String);
+}
+
+-keepclassmembers class com.pichillilorenzo.flutter_inappwebview_android.webview.JavaScriptBridgeInterface {
+    <fields>;
+    <methods>;
+    public *;
+    private *;
+}
+
+-keep class com.pichillilorenzo.flutter_inappwebview_android.** { *; }
+-dontwarn com.pichillilorenzo.flutter_inappwebview_android.**
+-dontwarn android.webkit.**
+-dontwarn android.window.BackEvent

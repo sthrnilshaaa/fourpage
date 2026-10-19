@@ -1,0 +1,707 @@
+{
+  "@@locale": "en",
+  "percentComplete": "{percent}% Complete",
+  "@percentComplete": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "folderLabel": "Folder: {name}",
+  "@folderLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "pageOf": "Page {page} of {total}",
+  "@pageOf": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "pageRangeHint": "1 – {total}",
+  "@pageRangeHint": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "couldNotOpenPdf": "Couldn't open this PDF.\n{error}",
+  "@couldNotOpenPdf": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "chapterBookmark": "Chapter {number} Bookmark",
+  "@chapterBookmark": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "chapterN": "Chapter {number}",
+  "@chapterN": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "bookmarkAtPercent": "Bookmark at {percent}%",
+  "@bookmarkAtPercent": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "couldNotOpenBookFile": "Couldn't open this book's file.\n{error}",
+  "@couldNotOpenBookFile": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "percentRead": "{percent}% read",
+  "@percentRead": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "importedBooks": "{count, plural, =1{Imported 1 book} other{Imported {count} books}}",
+  "@importedBooks": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "filePickerError": "Couldn't open the file picker: {error}",
+  "@filePickerError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "addedBook": "Added \"{title}\"",
+  "@addedBook": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "addedBooks": "{count, plural, =1{Added 1 book} other{Added {count} books}}",
+  "@addedBooks": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "addedWithFailures": "Added {added}, {failed} failed: {firstError}",
+  "@addedWithFailures": {
+    "placeholders": {
+      "added": {
+        "type": "int"
+      },
+      "failed": {
+        "type": "int"
+      },
+      "firstError": {
+        "type": "String"
+      }
+    }
+  },
+  "noBooksInFolder": "No books found in that folder ({formats})",
+  "@noBooksInFolder": {
+    "placeholders": {
+      "formats": {
+        "type": "String"
+      }
+    }
+  },
+  "addedFromFolder": "{count, plural, =1{Added 1 book from the folder} other{Added {count} books from the folder}}",
+  "@addedFromFolder": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "folderScanError": "Couldn't scan the folder: {error}",
+  "@folderScanError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "searchResultsCount": "{count, plural, =1{1 result in this book} other{{count} results in this book}}",
+  "@searchResultsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noResultsFor": "No results found for \"{query}\"",
+  "@noResultsFor": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "noteN": "Note {number}",
+  "@noteN": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "chapterLabel": "Chapter {number}",
+  "@chapterLabel": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "sectionLabel": "Section {number}",
+  "@sectionLabel": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "your": "Your ",
+  "alwaysWithYou": "\nalways with you.",
+  "openYourBooksReadOfflineAnd": "Open your books, read offline, and enjoy every page\nwithout distractions.",
+  "importYour": "Import Your ",
+  "fourpagesSupportsEpubBooks": "Fourpages supports EPUB books.",
+  "books": "Books",
+  "skip": "Skip →",
+  "getStarted": "Get Started",
+  "selectFolders": "Select Folders",
+  "addBooks": "Add Books",
+  "unknownAuthor": "Unknown Author",
+  "recentReading": "Recent Reading",
+  "pickUpWhereYouLeftOff": "Pick up where you left off",
+  "viewAllYourBooks": "View all your books",
+  "noBooksInYourLibrary": "No books in your library",
+  "importEpubBooksToStartYour": "Import EPUB books to start your reading journey.",
+  "importBooks": "Import Books",
+  "sortBy": "Sort by",
+  "allBooks": "All Books",
+  "shelves": "Shelves",
+  "folders": "Folders",
+  "noBooksFoundInThisFolder": "No books found in this folder.",
+  "showAllBooks": "Show all books",
+  "noBooksAvailableImportBooksTo": "No books available.\nImport books to build your library!",
+  "clear": "Clear",
+  "noShelvesYetImportBooksTo": "No shelves yet.\nImport books to start filling them.",
+  "unshelved": "Unshelved",
+  "noFoldersYetImportAFolder": "No folders yet.\nImport a folder of EPUBs to see it here.",
+  "other": "Other",
+  "fourpagesImported": "Fourpages/Imported",
+  "home": "Home",
+  "library": "Library",
+  "saved": "Saved",
+  "settings": "Settings",
+  "goToPage": "Go to page",
+  "cancel": "Cancel",
+  "go": "Go",
+  "goBack": "Go back",
+  "bookmarkedCurrentLocation": "Bookmarked current location!",
+  "theme": "Theme",
+  "fontStyle": "Font Style",
+  "textSize": "Text Size",
+  "alignment": "Alignment",
+  "addBookmark": "Add Bookmark",
+  "removeBookmark": "Remove Bookmark",
+  "vertical": "Vertical",
+  "horizontal": "Horizontal",
+  "feedback": "Feedback",
+  "feedbackIsnTAvailableYetCheck": "Feedback isn't available yet - check back soon!",
+  "customization": "Customization",
+  "bookmarkThisPage": "Bookmark this page",
+  "searchInBook": "Search in book",
+  "copiedToClipboard": "Copied to clipboard",
+  "addNote": "Add note",
+  "writeANote": "Write a note…",
+  "save": "Save",
+  "highlightRemoved": "Highlight removed",
+  "undo": "Undo",
+  "lastChapter": "Last chapter",
+  "firstChapter": "First chapter",
+  "releaseToOpen": "Release to open",
+  "nextChapter": "Next chapter",
+  "previousChapter": "Previous chapter",
+  "stillOpeningThisBook": "Still opening this book…",
+  "reload": "Reload",
+  "chapters": "Chapters",
+  "copy": "Copy",
+  "search": "Search",
+  "share": "Share",
+  "bookmark": "Bookmark",
+  "quotes": "Quotes",
+  "notes": "Notes",
+  "noSavedQuotesYetHighlightText": "No saved quotes yet.\nHighlight text while reading to save quotes!",
+  "noBookmarksSavedTapBookmarkWhile": "No bookmarks saved.\nTap bookmark while reading to save pages!",
+  "noNotesCreatedYet": "No notes created yet.",
+  "note": "Note",
+  "searchBooks": "Search books",
+  "noMatchingBooksFound": "No matching books found",
+  "paper": "Paper",
+  "sepia": "Sepia",
+  "night": "Night",
+  "forest": "Forest",
+  "black": "Black",
+  "applyToAllBooks": "Apply to all books?",
+  "everyBookInYourLibraryWill": "Every book in your library will use these reading settings. You can still change a single book from its reader menu.",
+  "apply": "Apply",
+  "readingSettingsAppliedToAllBooks": "Reading settings applied to all books",
+  "noEpubBooksFoundInThis": "No EPUB books found in this folder",
+  "appearance": "Appearance",
+  "appTheme": "App theme",
+  "system": "System",
+  "light": "Light",
+  "dark": "Dark",
+  "reading": "Reading",
+  "defaultsForBooksYouHavenT": "Defaults for books you haven't customised yet",
+  "bookTheme": "Book theme",
+  "textSize2": "Text size",
+  "lineSpacing": "Line spacing",
+  "justified": "Justified",
+  "centered": "Centered",
+  "left": "Left",
+  "readingMode": "Reading mode",
+  "scrollChapter": "Scroll chapter",
+  "pages": "Pages",
+  "hapticsOnChapterSwipe": "Haptics on chapter swipe",
+  "dynamicBookBackground": "Dynamic book background",
+  "removeHighlight": "Remove highlight",
+  "originalLayout": "Original layout",
+  "fastLayout": "Fast layout",
+  "openedInOriginalLayout": "This book opens in its original layout (complex formatting)",
+  "dynamicBookBackgroundCaption": "Sepia pages in light mode, dark pages in dark mode, following the app theme",
+  "applyToAllBooks2": "Apply to all books",
+  "libraryStorage": "Library & storage",
+  "defaultSort": "Default sort",
+  "folderAccess": "Folder access",
+  "neededToFindBooksInsideFolders": "Needed to find books inside folders you scan",
+  "allowed": "Allowed",
+  "allow": "Allow",
+  "scannedFolders": "Scanned folders",
+  "noneYetAddOneFromThe": "None yet - add one from the + button in Library",
+  "scanAgain": "Scan again",
+  "stopTrackingFolder": "Stop tracking folder",
+  "about": "About",
+  "privateByDesign": "Private by design",
+  "booksNotesAndProgressAreStored": "Books, notes and progress are stored only on this device. No account, no tracking.",
+  "formats": "Formats",
+  "epub2AndEpub3": "EPUB 2 and EPUB 3",
+  "wordDocx": "Word (.docx)",
+  "text": "Text",
+  "markdown": "Markdown",
+  "nothingImported": "Nothing imported",
+  "thisFolderCanTBeRead": "This folder can't be read. Allow folder access in Settings, or choose files instead.",
+  "recentlyAdded": "Recently added",
+  "titleAZ": "Title (A–Z)",
+  "authorAZ": "Author (A–Z)",
+  "readingProgress": "Reading progress",
+  "allowAccessToYourBooks": "Allow access to your books",
+  "notNow": "Not now",
+  "openSettings": "Open settings",
+  "importBooks2": "Import books",
+  "importing": "Importing…",
+  "chooseFiles": "Choose files",
+  "scanAFolder": "Scan a folder",
+  "themingCustomization": "Theming & Customization",
+  "screenMode": "Screen mode",
+  "typeAWordOrSentenceTo": "Type a word or sentence to search in book",
+  "loadingChapters": "Loading chapters…",
+  "noNotesSavedInThisBook": "No notes saved in this book.",
+  "tapPlayToStartListening": "Tap play to start listening.",
+  "paginated": "Paginated",
+  "scrolled": "Scrolled",
+  "brightness": "Brightness",
+  "untitled": "Untitled",
+  "noNotesYetSelectTextWhile": "No notes yet.\nSelect text while reading to add one.",
+  "allFilesAccessExplanation": "Android hides EPUB files in folders from apps by default. To find the books inside a folder, Fourpages needs \"All files access\".\n\nTurn it on for Fourpages on the next screen, then come back.",
+  "importErrorLegacyDoc": "Old Word (.doc) files aren't supported - save it as .docx or PDF.",
+  "importErrorUnknownType": "This file type isn't supported.",
+  "importErrorDamaged": "This file is damaged.",
+  "importErrorNotWord": "Not a Word document.",
+  "importErrorEmpty": "The file is empty.",
+  "importErrorPdfUnsupported": "PDF isn't supported on this device yet.",
+  "reminderContinueTitle": "Time to read",
+  "reminderContinueBody": "Continue {title} — {percent}% done",
+  "@reminderContinueBody": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "breakReminderTitle": "Time for a break",
+  "breakReminderBody": "You've been reading for {minutes} minutes. Rest your eyes for a moment.",
+  "@breakReminderBody": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "keepReading": "Keep reading",
+  "takeABreak": "Take a break",
+  "language": "Language",
+  "moreLanguagesSoon": "More languages coming soon",
+  "remindersAndNotifications": "Reminders & notifications",
+  "breakReminder": "Break reminder",
+  "breakReminderCaption": "Suggest a pause after reading this long without a break",
+  "off": "Off",
+  "durationMinutes": "{minutes} min",
+  "@durationMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "durationHoursMinutes": "{hours} h {minutes} min",
+  "@durationHoursMinutes": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "durationUnderAMinute": "< 1 min",
+  "dailyReadingReminder": "Daily reading reminder",
+  "dailyReadingReminderCaption": "A notification to continue your current book",
+  "notificationSound": "Notification sound",
+  "soundDefault": "Default",
+  "soundSilent": "Silent",
+  "soundCustom": "Custom sound",
+  "soundChoose": "Choose…",
+  "sendTestNotification": "Send a test notification",
+  "testNotificationBody": "Reminders will look like this.",
+  "notificationsBlocked": "Notifications are turned off for Fourpages. Allow them in system settings.",
+  "haptics": "Haptics",
+  "vibrationFeedback": "Vibration feedback",
+  "vibrationStrength": "Strength",
+  "strengthLight": "Light",
+  "strengthMedium": "Medium",
+  "strengthHeavy": "Strong",
+  "resetLibrary": "Reset library",
+  "resetLibraryTitle": "Reset library?",
+  "resetLibraryBody": "This removes every book, highlight, note, bookmark, reading progress and reading stat from this device. Your settings stay. This can't be undone.",
+  "resetLibraryConfirm": "Reset",
+  "libraryResetDone": "Library reset",
+  "readingStats": "Reading stats",
+  "rateFourpages": "Rate Fourpages",
+  "shareFourpages": "Share Fourpages",
+  "supportTheProject": "Support the project",
+  "supportTheProjectCaption": "Fourpages is free, offline and has no ads. Rating it or sharing it with a friend keeps it going.",
+  "storeUnavailable": "Couldn't open the app store.",
+  "shareMessage": "I'm reading with Fourpages, a free offline book reader: {url}",
+  "@shareMessage": {
+    "placeholders": {
+      "url": {
+        "type": "String"
+      }
+    }
+  },
+  "statToday": "Today",
+  "statThisWeek": "This week",
+  "statTotalReading": "Total reading",
+  "statStreak": "Streak",
+  "daysCount": "{count, plural, =1{1 day} other{{count} days}}",
+  "@daysCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "statSpeed": "Reading speed",
+  "wordsPerMinute": "{wpm} words/min",
+  "@wordsPerMinute": {
+    "placeholders": {
+      "wpm": {
+        "type": "int"
+      }
+    }
+  },
+  "statBooks": "Books",
+  "booksStartedFinished": "{started} started · {finished} finished",
+  "@booksStartedFinished": {
+    "placeholders": {
+      "started": {
+        "type": "int"
+      },
+      "finished": {
+        "type": "int"
+      }
+    }
+  },
+  "statScreenTimeToday": "Screen time today",
+  "statScreenTimeTotal": "Total screen time",
+  "suggestions": "Suggestions",
+  "timePerBook": "Time per book",
+  "noReadingYet": "No reading recorded yet.",
+  "removedBook": "Removed book",
+  "sessionsCount": "{count, plural, =1{1 session} other{{count} sessions}}",
+  "@sessionsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "insightStartReading": "Open a book to start tracking your reading.",
+  "insightContinueBook": "Pick up {title} — you're {percent}% through.",
+  "@insightContinueBook": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "insightTimeLeft": "About {time} left in {title} at your reading speed.",
+  "@insightTimeLeft": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "insightStreak": "{days}-day reading streak — keep it going!",
+  "@insightStreak": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "insightBelowAverage": "You usually read about {minutes} min a day. A short session today keeps the habit.",
+  "@insightBelowAverage": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "insightFinishOne": "You have {count} books in progress — finishing one might feel great.",
+  "@insightFinishOne": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "widgetEmpty": "Open a book in Fourpages",
+  "define": "Define",
+  "dictionaryOffline": "Couldn't reach the dictionary. Check your internet connection and try again.",
+  "noDefinitionFound": "No definition found for this word.",
+  "tryAgain": "Try again",
+  "synonyms": "Synonyms",
+  "pagesLeftInBook": "{count, plural, =1{1 page left in book} other{{count} pages left in book}}",
+  "@pagesLeftInBook": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "contentPadding": "Page margins",
+  "contentPaddingCaption": "Space on the left and right of the book text",
+  "newShelf": "New shelf",
+  "shelfName": "Shelf name",
+  "create": "Create",
+  "rename": "Rename",
+  "renameShelf": "Rename shelf",
+  "deleteShelf": "Delete shelf",
+  "delete": "Delete",
+  "done": "Done",
+  "deleteShelfBody": "\"{name}\" will be deleted. Its books stay in your library as unshelved.",
+  "@deleteShelfBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "shelfNameTaken": "You already have a shelf with this name",
+  "shelfOptions": "Shelf options",
+  "addBooksToShelf": "Add books to {name}",
+  "@addBooksToShelf": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "noBooksToAdd": "Every book is already on this shelf.",
+  "moveToShelf": "Move to shelf",
+  "removeFromShelf": "Remove from shelf",
+  "dropToRemoveFromShelf": "Drop to unshelve",
+  "dropToCreateShelf": "Drop for new shelf",
+  "emptyShelfHint": "Empty. Long-press a book and drag it here.",
+  "shelvesDragHint": "Long-press a cover and drag it onto another shelf to move it.",
+  "movedToShelf": "Moved to {name}",
+  "@movedToShelf": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "removedFromShelf": "Removed from {name}",
+  "@removedFromShelf": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "shelfCreated": "Created shelf \"{name}\"",
+  "@shelfCreated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "shelfBookCount": "{count, plural, =1{1 Book} other{{count} Books}}",
+  "@shelfBookCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "openBook": "Open",
+  "noShelvesCreateOne": "No shelves yet. Tap New shelf to make your first one.",
+  "manageShelvesCaption": "Create, rename, reorder and delete shelves here. Move books between shelves on Library › Shelves.",
+  "appGuide": "App guide",
+  "appGuideIntro": "Everything you can do in the app, and how to do it.",
+  "guideAddingBooks": "Adding books",
+  "guideImportFiles": "Tap + at the top of Home or Library, then Choose files. EPUB and PDF open as they are; TXT, Markdown, HTML and DOCX are turned into books.",
+  "guideScanFolder": "Tap + then Scan a folder to import every book inside it. Settings › Library lists scanned folders: rescan or stop tracking them there.",
+  "guideFolderAccess": "On Android, allow Folder access in Settings so folders can be scanned.",
+  "guideHomeTitle": "Home & search",
+  "guideRecent": "Recent Reading shows the books you opened last. Tap one to pick up where you left off.",
+  "guideSearchBooks": "Tap the search bar to find a book by title or author.",
+  "guideLibraryTitle": "Library",
+  "guideLibraryTabs": "All Books lists every book, Shelves groups them, Folders shows where they came from.",
+  "guideSort": "Tap the tab that's already selected to change the sort order (recently added, title, author, progress). Set the default in Settings.",
+  "guideFolders": "Tap a folder to see only its books in All Books. Tap Clear to see everything again.",
+  "guideShelvesTitle": "Shelves",
+  "guideNewShelf": "Library › Shelves › New shelf, or Settings › Shelves, to make a shelf.",
+  "guideDragBook": "Long-press a book cover and drag it onto another shelf to move it. Drop it on Drop to unshelve to take it off its shelf, or on Drop for new shelf to start a shelf with it.",
+  "guideShelfMenu": "Tap ⋮ on a shelf to add books, rename it or delete it. Deleting a shelf keeps its books.",
+  "guideShelfOpen": "Tap a shelf's name to see all its books. Long-press a book there to move it or remove it from the shelf.",
+  "guideLongPressList": "In All Books, long-press a book to put it on a shelf.",
+  "guideReorderShelves": "Reorder shelves in Settings › Shelves by dragging the handle.",
+  "guideReaderTitle": "Reading",
+  "guideTapControls": "Tap the page to show or hide the top and bottom bars.",
+  "guideTurnPages": "Swipe left or right to turn the page. Keyboard: arrow keys, Space, Page Up/Down.",
+  "guideScrolledMode": "In Scrolled mode, scroll up and down; pull past the end of a chapter sideways until the ring fills to go to the next or previous one.",
+  "guideZoomStrip": "While the bars are showing, pages shrink into a strip: swipe it to look around, tap a page to go there.",
+  "guideScrubber": "Drag or tap the bar at the bottom to jump through the book. Tap the rest of the bottom pill for Chapters & Notes.",
+  "guideCustomize": "Aa in the top bar changes theme, font, text size, line spacing, alignment and reading mode for this book.",
+  "guideBookmark": "Tap the bookmark icon to bookmark the page (keyboard: B).",
+  "guideSearchInBook": "Use the search icon in the top bar to search inside the book.",
+  "guideSelectionTitle": "Highlights & notes",
+  "guideSelectText": "Long-press a word to select it, then drag the handles to select more.",
+  "guideSelectionMenu": "From the menu pick a colour to highlight, or Add note, Copy, Search, Share and Define (dictionary).",
+  "guideTapHighlight": "Tap a highlight to change its colour or remove it.",
+  "guideSavedTab": "The Saved tab collects your bookmarks, quotes (highlights) and notes from every book. Tap one to open the book there.",
+  "guidePdfTitle": "PDF",
+  "guidePdf": "Pinch to zoom, drag to pan, double-tap to zoom in or out. Use Go to page to jump.",
+  "guideSettingsTitle": "Settings",
+  "guideAppearance": "Appearance: app theme (system, light, dark) and language.",
+  "guideReadingDefaults": "Reading: theme, text size, spacing, alignment, mode and page margins for books you haven't changed yourself. Apply to all books overwrites every book.",
+  "guideDynamicBackground": "Dynamic book background makes books follow the app theme: sepia when light, dark when dark.",
+  "guideReminders": "Reminders: break reminders while reading, a daily reading reminder and its sound.",
+  "guideHaptics": "Haptics: vibration on/off, strength, and a buzz when swiping chapters.",
+  "guideLibrarySettings": "Library & storage: book count, default sort, folder access, scanned folders, reading stats, and Reset library (deletes every book).",
+  "checkForUpdates": "Check for updates",
+  "updateAvailableTitle": "Update available",
+  "updateAvailableBody": "Version {version} is ready to install.",
+  "@updateAvailableBody": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateNow": "Update",
+  "later": "Later",
+  "skipThisVersion": "Skip this version",
+  "downloadingUpdate": "Downloading… {percent}%",
+  "@downloadingUpdate": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "installUpdate": "Install",
+  "allowInstallsHint": "Allow Fourpages to install apps, then tap Install again.",
+  "upToDate": "You're on the latest version",
+  "updateCheckFailed": "Couldn't check for updates. Check your connection.",
+  "updateDownloadFailed": "Download failed. Try again.",
+  "whatsNew": "What's new",
+  "versionLabel": "Version {version}",
+  "@versionLabel": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "buildGithub": "GitHub build · updates from GitHub Releases",
+  "buildPlaystore": "Play Store build · updates through Google Play",
+  "supportOnKofi": "Support on Ko-fi",
+  "supportOnKofiCaption": "Fourpages is free, offline and has no ads. A coffee keeps it going.",
+  "starOnGithub": "Star on GitHub",
+  "starOnGithubCaption": "Stars help other readers find the app. Translations and fixes are welcome there too.",
+  "linkUnavailable": "Couldn't open the link",
+  "guideUpdatesTitle": "Updates & support",
+  "guideUpdates": "The app checks for a new version once a day. Settings › About › Check for updates checks right now.",
+  "guideSupport": "Settings › About: support the app on Ko-fi, star it on GitHub, rate or share it."
+}

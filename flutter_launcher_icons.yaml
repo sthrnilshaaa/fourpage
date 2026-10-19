@@ -1,0 +1,10 @@
+flutter_icons:
+  android: true
+  ios: false
+  launcher_name: "Fourpages"
+  image_path: "assets/launcher/aread_logo01_padded.png"
+  adaptive_icon_background: "#0E1C10"
+  adaptive_icon_foreground: "assets/launcher/aread_transparent_logo01_padded.png"
+  min_sdk_android: 21
+
+

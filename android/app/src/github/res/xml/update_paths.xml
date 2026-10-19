@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Where the update APK is downloaded (cacheDir/updates, see app_updater.dart). -->
+<paths>
+    <cache-path name="updates" path="updates/" />
+</paths>

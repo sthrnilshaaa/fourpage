@@ -1,0 +1,30 @@
+name: Translation
+description: Offer or request a translation of the app
+labels: [translation]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Translations are plain text files: copy `lib/l10n/app_en.arb` to `lib/l10n/app_<code>.arb`,
+        translate the values and open a pull request. See "Translations" in the README.
+  - type: input
+    id: language
+    attributes:
+      label: Language
+      placeholder: Hindi (hi)
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What is this about?
+      options:
+        - I'd like to translate the app
+        - A translation has mistakes
+        - Please add this language
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Details

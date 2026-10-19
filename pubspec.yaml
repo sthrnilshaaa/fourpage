@@ -1,0 +1,84 @@
+name: aread
+description: "Fourpages: a free, offline EPUB and PDF reader."
+homepage: https://github.com/sthrnilshaaa/fourpages
+repository: https://github.com/sthrnilshaaa/fourpages
+issue_tracker: https://github.com/sthrnilshaaa/fourpages/issues
+funding:
+  - https://ko-fi.com/L2L124TL7L
+# An app, not a package: never publish to pub.dev.
+publish_to: 'none'
+
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.12.2
+
+# Dependencies specify other packages that your package needs in order to work.
+# To automatically upgrade your package dependencies to the latest versions
+# consider running `flutter pub upgrade --major-versions`. Alternatively,
+# dependencies can be manually updated by changing the version numbers below to
+# the latest version available on pub.dev. To see which dependencies have newer
+# versions available, run `flutter pub outdated`.
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.20.3
+  cupertino_icons: ^1.0.8
+  google_fonts: ^8.2.1
+  archive: ^3.6.1
+  xml: ^6.5.0
+  crypto: ^3.0.6
+  path: ^1.9.0
+  path_provider: ^2.1.2
+  sqflite: ^2.3.2
+  sqflite_common_ffi: ^2.3.2
+  file_picker: ^12.0.0
+  epubx: ^4.0.0
+  html: ^0.15.4
+  flutter_html: ^3.0.0-beta.2
+  scrollable_positioned_list: ^0.3.8
+  collection: ^1.17.1
+  html_unescape: ^2.0.0
+  equatable: ^2.0.5
+  sakura_epub: ^0.1.3
+  share_plus: ^13.3.0
+  flutter_launcher_icons: ^0.11.0
+  flutter_svg: ^2.3.0
+  vector_math: ^2.4.3
+
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+# TEMPORARY: flutter_inappwebview_android 1.1.3 (pulled in via sakura_epub)
+# doesn't build under AGP 9+ (uses a proguard file AGP 9 removed). No fixed
+# release exists yet - see third_party/README.md. Remove once it's patched
+# upstream.
+dependency_overrides:
+  flutter_inappwebview_android:
+    path: third_party/flutter_inappwebview_android-1.1.3-agp9-patch
+  # Patched copy: can open a book from a URL the app serves natively
+  # (unpacked EPUB) instead of pushing the whole file through the JS bridge.
+  # See third_party/README.md.
+  sakura_epub:
+    path: third_party/sakura_epub-0.1.3-aread
+
+
+flutter:
+  uses-material-design: true
+  # Android build flavor used when --flavor isn't given (github | playstore,
+  # see android/app/build.gradle.kts).
+  default-flavor: github
+  # Generates lib/l10n/app_localizations*.dart from lib/l10n/*.arb (see l10n.yaml).
+  generate: true
+  assets:
+    - assets/images/
+    - assets/icons/
+    - assets/launcher/
+
+  shaders:
+    - shaders/page_curl.frag

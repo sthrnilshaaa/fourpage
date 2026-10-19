@@ -1,0 +1,23 @@
+# Normalise line endings in the repo; keep Windows scripts CRLF.
+* text=auto eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.gif binary
+*.ttf binary
+*.otf binary
+*.epub binary
+*.pdf binary
+*.jar binary
+*.jks binary
+
+# Generated or vendored: hide from diffs and language stats
+lib/l10n/app_localizations*.dart linguist-generated=true
+pubspec.lock linguist-generated=true
+third_party/** linguist-vendored=true
+docs/** linguist-documentation=true
