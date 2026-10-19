@@ -5,6 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../aread.dart';
 import '../state/library_controller.dart';
 import '../layout/browse_insets.dart';
+import '../layout/max_width.dart';
+import '../layout/window_class.dart';
 import '../theme/app_colors.dart';
 import '../utils/reader_launcher.dart';
 import '../widgets/add_book_dialog.dart';
@@ -72,11 +74,11 @@ class _SavedScreenState extends State<SavedScreen> {
                   duration: const Duration(milliseconds: 200),
                   child: KeyedSubtree(
                     key: ValueKey(_selectedTab),
-                    child: switch (_selectedTab) {
+                    child: _capWidth(switch (_selectedTab) {
                       SavedTabSection.quotes => _buildQuotesView(allQuotes),
                       SavedTabSection.bookmark => _buildBookmarksView(allBookmarks),
                       SavedTabSection.notes => _buildNotesView(allNotes),
-                    },
+                    }),
                   ),
                 ),
               ),
@@ -89,6 +91,9 @@ class _SavedScreenState extends State<SavedScreen> {
 
   /// Quotes View (saved_page in Figma): serif quote, Sora source title,
   /// hairline dividers between entries.
+  /// Lists stay readable on big windows: centered, at most 760 wide.
+  Widget _capWidth(Widget list) => context.windowClass.isCompact ? list : MaxWidth(maxWidth: 760, child: list);
+
   Widget _buildQuotesView(List<Map<String, dynamic>> quotes) {
     if (quotes.isEmpty) {
       return EmptyHint(l10n.noSavedQuotesYetHighlightText);

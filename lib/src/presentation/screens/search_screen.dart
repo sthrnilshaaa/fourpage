@@ -4,7 +4,9 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/constants/asset_constants.dart';
 import '../state/library_controller.dart';
+import '../layout/book_grid.dart';
 import '../layout/browse_insets.dart';
+import '../layout/window_class.dart';
 import '../theme/app_colors.dart';
 import '../utils/reader_launcher.dart';
 import '../widgets/add_book_dialog.dart';
@@ -152,6 +154,12 @@ class _SearchScreenState extends State<SearchScreen> {
               Expanded(
                 child: matchingBooks.isEmpty
                     ? EmptyHint(l10n.noMatchingBooksFound)
+                    : !context.windowClass.isCompact
+                    ? BookGrid(
+                        books: matchingBooks,
+                        padding: const EdgeInsets.fromLTRB(20, 0, 23, 24),
+                        onOpen: _openReader,
+                      )
                     : ListView.separated(
                         padding: EdgeInsets.fromLTRB(20, 0, 23, browseBottomPadding(context, compact: 140)),
                         itemCount: matchingBooks.length,

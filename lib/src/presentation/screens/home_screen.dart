@@ -4,7 +4,11 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/constants/asset_constants.dart';
 import '../state/library_controller.dart';
+import '../layout/book_details_pane.dart';
+import '../layout/book_grid.dart';
 import '../layout/browse_insets.dart';
+import '../layout/window_class.dart';
+import '../widgets/shelf_dialogs.dart';
 import '../theme/app_colors.dart';
 import '../utils/reader_launcher.dart';
 import '../widgets/add_book_dialog.dart';
@@ -13,8 +17,16 @@ import '../widgets/book_cover_widget.dart';
 import '../widgets/home_skeleton.dart';
 import 'search_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  /// Book shown in the expanded-width details pane (mouse selection).
+  BookItem? _selected;
 
   void _openReader(BuildContext context, BookItem book) {
     LibraryController.instance.setActiveBook(book);
@@ -44,9 +56,9 @@ class HomeScreen extends StatelessWidget {
         final books = LibraryController.instance.books;
         final recent = LibraryController.instance.recentBooks;
 
-        return Scaffold(
-          backgroundColor: AppColors.figmaBackground,
-          body: Column(
+        final windowClass = context.windowClass;
+        final details = windowClass.isExpanded ? resolveDetailsBook(_selected, books, recent: recent) : null;
+        final main = Column(
             children: [
               BrowseTopBar(
                 onSearchTap: () => _openSearch(context),
@@ -97,6 +109,17 @@ class HomeScreen extends StatelessWidget {
                             showChevron: true,
                           ),
                           const SizedBox(height: 18),
+                          if (!windowClass.isCompact)
+                            BookGrid(
+                              books: books,
+                              scrollable: false,
+                              padding: const EdgeInsets.fromLTRB(21, 0, 22, 20),
+                              selected: details,
+                              onOpen: (b) => _openReader(context, b),
+                              onSelect: windowClass.isExpanded ? (b) => setState(() => _selected = b) : null,
+                              onSecondary: (b, _) => showMoveToShelfSheet(context, b),
+                            )
+                          else
                           for (final book in books)
                             Padding(
                               padding: const EdgeInsets.fromLTRB(21, 0, 22, 20),
@@ -104,6 +127,23 @@ class HomeScreen extends StatelessWidget {
                             ),
                         ],
                       ),
+              ),
+            ],
+          );
+
+        if (!windowClass.isExpanded || books.isEmpty) {
+          return Scaffold(backgroundColor: AppColors.figmaBackground, body: main);
+        }
+        return Scaffold(
+          backgroundColor: AppColors.figmaBackground,
+          body: Row(
+            children: [
+              Expanded(child: main),
+              BookDetailsPane(
+                book: details,
+                onOpen: details == null ? null : () => _openReader(context, details),
+                onMoveToShelf: details == null ? null : () => showMoveToShelfSheet(context, details),
+                shelfName: details == null ? null : LibraryController.instance.shelfOf(details)?.name,
               ),
             ],
           ),
@@ -226,7 +266,7 @@ class _RecentBookCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final progress = HomeScreen._progressOf(book);
+    final progress = _HomeScreenState._progressOf(book);
     return GestureDetector(
       onTap: onTap,
       child: SizedBox(
@@ -252,7 +292,7 @@ class _RecentBookCard extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              progress > 0 ? l10n.percentComplete((progress * 100).round()) : HomeScreen._authorOf(book),
+              progress > 0 ? l10n.percentComplete((progress * 100).round()) : _HomeScreenState._authorOf(book),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.sora(fontSize: 13, height: 14 / 13, color: AppColors.figmaTextMuted),
@@ -276,7 +316,7 @@ class _HomeBookRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final progress = HomeScreen._progressOf(book);
+    final progress = _HomeScreenState._progressOf(book);
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
@@ -317,7 +357,7 @@ class _HomeBookRow extends StatelessWidget {
                     right: 40,
                     top: 70,
                     child: Text(
-                      HomeScreen._authorOf(book),
+                      _HomeScreenState._authorOf(book),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: AppText.listAuthor,
