@@ -9,6 +9,8 @@ import '../../domain/entities/reader_preferences.dart';
 import '../state/app_preferences.dart';
 import '../state/library_controller.dart';
 import '../layout/browse_insets.dart';
+import '../layout/master_detail.dart';
+import '../layout/window_class.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme_controller.dart';
 import '../platform/app_haptics.dart';
@@ -37,6 +39,60 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObserver {
   bool? _folderAccess;
+
+  /// Medium/expanded: the section shown in the detail pane, and the pane's
+  /// own navigator so sub-screens (Reading stats) open inside it.
+  int _section = 0;
+  final _detailNav = GlobalKey<NavigatorState>();
+
+  List<(String, Widget Function())> get _sections => [
+        (l10n.appearance, _appearanceSection),
+        (l10n.reading, _readingSection),
+        (l10n.remindersAndNotifications, _remindersSection),
+        (l10n.haptics, _hapticsSection),
+        (l10n.libraryStorage, _librarySection),
+        (l10n.shelves, _shelvesSection),
+        (l10n.about, _aboutSection),
+        (l10n.appGuide, () => const AppGuideScreen()),
+      ];
+
+  void _push(Widget screen) {
+    final nav = context.windowClass.isCompact ? Navigator.of(context) : _detailNav.currentState;
+    nav?.push(MaterialPageRoute(builder: (_) => screen));
+  }
+
+  Widget _buildMasterDetail() {
+    final sections = _sections;
+    final index = _section.clamp(0, sections.length - 1);
+    final isGuide = index == sections.length - 1;
+    return Scaffold(
+      backgroundColor: AppColors.figmaBackground,
+      body: MasterDetail(
+        header: Text(l10n.settings, style: GoogleFonts.sora(fontSize: 24, fontWeight: FontWeight.w600, color: AppColors.fg)),
+        titles: [for (final s in sections) s.$1],
+        selected: index,
+        onSelected: (i) => setState(() => _section = i),
+        detail: Navigator(
+          key: _detailNav,
+          pages: [
+            MaterialPage(
+              key: ValueKey('settings-section-$index'),
+              child: isGuide
+                  ? sections[index].$2()
+                  : Scaffold(
+                      backgroundColor: AppColors.figmaBackground,
+                      body: ListView(
+                        padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+                        children: [sections[index].$2()],
+                      ),
+                    ),
+            ),
+          ],
+          onDidRemovePage: (_) {},
+        ),
+      ),
+    );
+  }
 
   static const _lineHeights = [1.2, 1.35, 1.5, 1.75, 2.0];
   static final _bookThemes = [
@@ -138,7 +194,7 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
   Widget build(BuildContext context) {
     return ListenableBuilder(
       listenable: Listenable.merge([AppPreferences.instance, AppThemeController.instance, LibraryController.instance]),
-      builder: (context, _) => Scaffold(
+      builder: (context, _) => !context.windowClass.isCompact ? _buildMasterDetail() : Scaffold(
         backgroundColor: AppColors.figmaBackground,
         body: SafeArea(
           bottom: false,
@@ -154,7 +210,7 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
                   IconButton(
                     tooltip: l10n.appGuide,
                     icon: Icon(Icons.info_outline_rounded, color: AppColors.accentLime),
-                    onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AppGuideScreen())),
+                    onPressed: () => _push(const AppGuideScreen()),
                   ),
                 ],
               ),
@@ -527,7 +583,7 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
         _ActionRow(
           label: l10n.readingStats,
           icon: Icons.insights_rounded,
-          onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ReadingStatsScreen())),
+          onTap: () => _push(const ReadingStatsScreen()),
         ),
         _ActionRow(label: l10n.resetLibrary, icon: Icons.delete_sweep_outlined, onTap: _resetLibrary, danger: true),
       ],
