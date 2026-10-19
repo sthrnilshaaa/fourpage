@@ -21,12 +21,17 @@ class SakuraCustomizationSheet extends StatefulWidget {
   final double brightness;
   final ValueChanged<double> onBrightnessChanged;
 
+  /// Shown inline in a reader side pane: no handle, close button or sheet
+  /// corners, and it scrolls when taller than the pane.
+  final bool embedded;
+
   const SakuraCustomizationSheet({
     super.key,
     required this.preferences,
     required this.onChanged,
     required this.brightness,
     required this.onBrightnessChanged,
+    this.embedded = false,
   });
 
   @override
@@ -82,10 +87,10 @@ class _SakuraCustomizationSheetState extends State<SakuraCustomizationSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final sheet = Container(
       decoration: BoxDecoration(
         color: _sheetColor,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: widget.embedded ? null : BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: SafeArea(
         top: false,
@@ -95,6 +100,7 @@ class _SakuraCustomizationSheetState extends State<SakuraCustomizationSheet> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              if (!widget.embedded)
               Center(
                 child: Container(
                   width: 75,
@@ -111,6 +117,7 @@ class _SakuraCustomizationSheetState extends State<SakuraCustomizationSheet> {
                       style: GoogleFonts.sora(fontSize: 20, letterSpacing: -0.4, color: AppColors.fg),
                     ),
                   ),
+                  if (!widget.embedded)
                   GestureDetector(
                     onTap: () => Navigator.of(context).pop(),
                     child: const FigmaIcon(AssetConstants.iconCloseCircle, width: 48, height: 48),
@@ -225,10 +232,27 @@ class _SakuraCustomizationSheetState extends State<SakuraCustomizationSheet> {
                 height: 57,
                 child: Row(
                   children: [
-                    Expanded(child: Text(l10n.readingMode, style: _label)),
-                    _flowChip(l10n.paginated, ScrollMode.paginated),
-                    const SizedBox(width: 8),
-                    _flowChip(l10n.scrolled, ScrollMode.continuous),
+                    Expanded(child: Text(l10n.readingMode, style: _label, maxLines: 1, overflow: TextOverflow.ellipsis)),
+                    if (widget.embedded)
+                      // Side pane: the chips shrink (never grow) to fit.
+                      Flexible(
+                        flex: 2,
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Row(
+                            children: [
+                              _flowChip(l10n.paginated, ScrollMode.paginated),
+                              const SizedBox(width: 8),
+                              _flowChip(l10n.scrolled, ScrollMode.continuous),
+                            ],
+                          ),
+                        ),
+                      )
+                    else ...[
+                      _flowChip(l10n.paginated, ScrollMode.paginated),
+                      const SizedBox(width: 8),
+                      _flowChip(l10n.scrolled, ScrollMode.continuous),
+                    ],
                   ],
                 ),
               ),
@@ -250,6 +274,7 @@ class _SakuraCustomizationSheetState extends State<SakuraCustomizationSheet> {
         ),
       ),
     );
+    return widget.embedded ? SingleChildScrollView(child: sheet) : sheet;
   }
 
   Widget _divider({double top = 0}) => Padding(

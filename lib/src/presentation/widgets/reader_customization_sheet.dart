@@ -9,10 +9,15 @@ class ReaderCustomizationSheet extends StatefulWidget {
   final ReaderPreferences preferences;
   final ValueChanged<ReaderPreferences> onChanged;
 
+  /// Shown inline in a reader side pane: no handle, close button or sheet
+  /// corners, and it scrolls when taller than the pane.
+  final bool embedded;
+
   const ReaderCustomizationSheet({
     super.key,
     required this.preferences,
     required this.onChanged,
+    this.embedded = false,
   });
 
   @override
@@ -35,17 +40,18 @@ class _ReaderCustomizationSheetState extends State<ReaderCustomizationSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final sheet = Container(
       padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
       decoration: BoxDecoration(
         color: AppColors.sheetSurface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: widget.embedded ? null : BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Drag Handle
+          if (!widget.embedded)
           Center(
             child: Container(
               width: UIConstants.dragHandleWidth,
@@ -62,14 +68,19 @@ class _ReaderCustomizationSheetState extends State<ReaderCustomizationSheet> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                l10n.themingCustomization,
-                style: GoogleFonts.sora(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.fg,
+              Flexible(
+                child: Text(
+                  l10n.themingCustomization,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.sora(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.fg,
+                  ),
                 ),
               ),
+              if (!widget.embedded)
               GestureDetector(
                 onTap: () => Navigator.of(context).pop(),
                 child: Container(
@@ -139,7 +150,7 @@ class _ReaderCustomizationSheetState extends State<ReaderCustomizationSheet> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(l10n.textSize, style: GoogleFonts.sora(fontSize: 14, color: AppColors.fgSubtle)),
+              Flexible(child: Text(l10n.textSize, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.sora(fontSize: 14, color: AppColors.fgSubtle))),
               Row(
                 children: [
                   IconButton(
@@ -177,7 +188,7 @@ class _ReaderCustomizationSheetState extends State<ReaderCustomizationSheet> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(l10n.alignment, style: GoogleFonts.sora(fontSize: 14, color: AppColors.fgSubtle)),
+              Flexible(child: Text(l10n.alignment, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.sora(fontSize: 14, color: AppColors.fgSubtle))),
               Row(
                 children: [
                   _buildAlignBtn(Icons.format_align_left_rounded, 'left'),
@@ -195,7 +206,7 @@ class _ReaderCustomizationSheetState extends State<ReaderCustomizationSheet> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(l10n.lineSpacing, style: GoogleFonts.sora(fontSize: 14, color: AppColors.fgSubtle)),
+              Flexible(child: Text(l10n.lineSpacing, maxLines: 1, overflow: TextOverflow.ellipsis, style: GoogleFonts.sora(fontSize: 14, color: AppColors.fgSubtle))),
               Row(
                 children: [
                   IconButton(
@@ -229,6 +240,7 @@ class _ReaderCustomizationSheetState extends State<ReaderCustomizationSheet> {
         ],
       ),
     );
+    return widget.embedded ? SingleChildScrollView(child: sheet) : sheet;
   }
 
   Widget _buildColorBox({required Color color, Color? borderColor, required ReaderTheme theme}) {

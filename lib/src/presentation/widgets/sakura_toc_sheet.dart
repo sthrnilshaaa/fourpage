@@ -19,11 +19,16 @@ class SakuraTocSheet extends StatefulWidget {
   /// Notes and highlights for this book, shown on the Notes tab.
   final List<Annotation> notes;
 
+  /// Shown inline in a reader side pane: no fixed height, handle, close
+  /// button or sheet corners, and choosing an item doesn't pop a route.
+  final bool embedded;
+
   const SakuraTocSheet({
     super.key,
     required this.chapters,
     required this.onNavigateToHref,
     this.notes = const [],
+    this.embedded = false,
   });
 
   @override
@@ -38,22 +43,23 @@ class _SakuraTocSheetState extends State<SakuraTocSheet> {
   final Set<NavItem> _expanded = {};
 
   void _go(String href) {
-    Navigator.of(context).pop();
+    if (!widget.embedded) Navigator.of(context).pop();
     widget.onNavigateToHref(href);
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: MediaQuery.of(context).size.height * 0.62,
+      height: widget.embedded ? null : MediaQuery.of(context).size.height * 0.62,
       decoration: BoxDecoration(
         color: _sheetColor,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: widget.embedded ? null : BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const SizedBox(height: 11),
+          if (!widget.embedded)
           Center(
             child: Container(
               width: 75,
@@ -70,6 +76,7 @@ class _SakuraTocSheetState extends State<SakuraTocSheet> {
                 const SizedBox(width: 12),
                 _tabButton(l10n.notes, 1),
                 const Spacer(),
+                if (!widget.embedded)
                 GestureDetector(
                   onTap: () => Navigator.of(context).pop(),
                   child: const FigmaIcon(AssetConstants.iconCloseCircle, width: 48, height: 48),

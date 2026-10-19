@@ -13,6 +13,10 @@ class ReaderTocSheet extends StatefulWidget {
   final ValueChanged<Locator>? onNavigate;
   final EpubController? epubController;
 
+  /// Shown inline in a reader side pane: no fixed height, handle, close
+  /// button or sheet corners, and choosing an item doesn't pop a route.
+  final bool embedded;
+
   const ReaderTocSheet({
     super.key,
     required this.publication,
@@ -20,6 +24,7 @@ class ReaderTocSheet extends StatefulWidget {
     required this.bookmarks,
     this.onNavigate,
     this.epubController,
+    this.embedded = false,
   });
 
   @override
@@ -46,15 +51,18 @@ class _ReaderTocSheetState extends State<ReaderTocSheet> with SingleTickerProvid
     final tocLinks = widget.publication.tableOfContents.items;
 
     return Container(
-      height: MediaQuery.of(context).size.height * 0.78,
-      padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+      height: widget.embedded ? null : MediaQuery.of(context).size.height * 0.78,
+      padding: EdgeInsets.fromLTRB(20, widget.embedded ? 16 : 10, 20, 20),
       decoration: BoxDecoration(
-        color: AppColors.sheetSurface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        // Embedded: the pane paints the surface (and ListTile ink needs the
+        // Material below it, not a coloured box in between).
+        color: widget.embedded ? null : AppColors.sheetSurface,
+        borderRadius: widget.embedded ? null : BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
         children: [
           // Drag Handle
+          if (!widget.embedded)
           Center(
             child: Container(
               width: UIConstants.dragHandleWidth,
@@ -71,7 +79,8 @@ class _ReaderTocSheetState extends State<ReaderTocSheet> with SingleTickerProvid
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              TabBar(
+              Flexible(
+                child: TabBar(
                 controller: _tabController,
                 isScrollable: true,
                 tabAlignment: TabAlignment.start,
@@ -87,6 +96,8 @@ class _ReaderTocSheetState extends State<ReaderTocSheet> with SingleTickerProvid
                   Tab(text: l10n.notes),
                 ],
               ),
+              ),
+              if (!widget.embedded)
               GestureDetector(
                 onTap: () => Navigator.of(context).pop(),
                 child: Container(
@@ -138,7 +149,7 @@ class _ReaderTocSheetState extends State<ReaderTocSheet> with SingleTickerProvid
                             style: GoogleFonts.sora(fontSize: 15, fontWeight: FontWeight.w400, color: AppColors.fg),
                           ),
                           onTap: () {
-                            Navigator.of(context).pop();
+                            if (!widget.embedded) Navigator.of(context).pop();
                             if (widget.epubController != null && chapters.isNotEmpty) {
                               // startIndex is the chapter's first paragraph;
                               // the row index is not (it used to be passed
@@ -176,7 +187,7 @@ class _ReaderTocSheetState extends State<ReaderTocSheet> with SingleTickerProvid
                               style: GoogleFonts.sora(color: AppColors.fgSubtle, fontSize: 12),
                             ),
                             onTap: () {
-                              Navigator.of(context).pop();
+                              if (!widget.embedded) Navigator.of(context).pop();
                               if (widget.onNavigate != null) {
                                 widget.onNavigate!(ann.locator);
                               }
