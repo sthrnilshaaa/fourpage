@@ -5,11 +5,23 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    ignore:
+      # 9.x needs a newer Flutter (TextTheme type change).
+      - dependency-name: google_fonts
+        versions: [">=9.0.0"]
   - package-ecosystem: gradle
     directory: /android
     schedule:
       interval: monthly
     open-pull-requests-limit: 5
+    ignore:
+      # Held back until the Android build moves off android.newDsl=false:
+      # AGP 9.4 fails on the reader module's source-set setup, and
+      # androidx.core 1.19 needs AGP 9.1+.
+      - dependency-name: com.android.application
+      - dependency-name: com.android.library
+      - dependency-name: gradle-wrapper
+      - dependency-name: androidx.core:*
   - package-ecosystem: github-actions
     directory: /
     schedule:
