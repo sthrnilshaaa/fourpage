@@ -34,7 +34,7 @@ body:
     id: build
     attributes:
       label: Where did you install it from?
-      options: [GitHub release, Google Play, Built it myself]
+      options: [GitHub release, Built it myself]
     validations:
       required: true
   - type: input

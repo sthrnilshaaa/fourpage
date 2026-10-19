@@ -1,6 +1,5 @@
-# Every push to main and every pull request: analyze, test, and build the
-# GitHub-flavor debug APK (kept as a downloadable artifact for testing a PR
-# on a phone).
+# Every push to main and every pull request: analyze and test.
+# (No APK builds or releases from GitHub yet.)
 name: CI
 
 on:
@@ -44,33 +43,3 @@ jobs:
 
       - name: Test
         run: flutter test
-
-  build-android:
-    name: Build Android
-    needs: analyze-and-test
-    runs-on: ubuntu-latest
-    timeout-minutes: 45
-    steps:
-      - uses: actions/checkout@v5
-
-      - uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: "17"
-          cache: gradle
-
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: stable
-          cache: true
-
-      - name: Build debug APK
-        run: flutter build apk --debug --flavor github
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v5
-        with:
-          name: fourpages-github-debug-apk
-          path: build/app/outputs/flutter-apk/app-github-debug.apk
-          retention-days: 14

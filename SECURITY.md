@@ -16,7 +16,7 @@ Only the latest release gets security fixes.
 ## Scope
 
 Fourpages works offline and keeps everything on the device. The parts that
-talk to the network are: the update check (GitHub API / Google Play), the
+talk to the network are: the update check (GitHub API), the
 optional dictionary lookup (dictionaryapi.dev), and links you open yourself.
 Problems with opening malicious EPUB, PDF or DOCX files (crashes, file access
 outside the app, script execution in the reader) are in scope.

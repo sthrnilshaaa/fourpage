@@ -14,7 +14,7 @@ Thanks for helping! Bug reports, ideas, translations and code are all welcome.
 2. Fork and clone, then:
    ```sh
    flutter pub get
-   flutter run            # Android, github flavor by default
+   flutter run            # Android
    ```
 3. Make your change on a branch (`fix/scroll-jump`, `feat/shelf-colors`, ...).
 4. Before opening a pull request:

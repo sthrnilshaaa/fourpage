@@ -10,8 +10,7 @@ All notable changes to Fourpages. The format follows
 - Shelves: create, rename, delete and reorder shelves; long-press a book and
   drag it between shelves; add books to a shelf from a checklist.
 - In-app guide (Settings › i) explaining every feature and gesture.
-- In-app updates: GitHub build updates from GitHub Releases, Play build through
-  Google Play.
+- In-app update check against GitHub Releases.
 - Support links: Ko-fi and Star on GitHub (Settings › About).
 - Native Android reader engine (Kotlin page engine) with locators, CFI
   migration, highlights, notes, search and a scrolled mode.

@@ -7,7 +7,6 @@
 **A free, offline book reader for Android. No ads, no account, no tracking.**
 
 [![CI](https://github.com/sthrnilshaaa/fourpages/actions/workflows/ci.yml/badge.svg)](https://github.com/sthrnilshaaa/fourpages/actions/workflows/ci.yml)
-[![Latest release](https://img.shields.io/github/v/release/sthrnilshaaa/fourpages?label=release&color=a3e635)](https://github.com/sthrnilshaaa/fourpages/releases/latest)
 [![License: GPL v3](https://img.shields.io/badge/license-GPLv3-blue.svg)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/sthrnilshaaa/fourpages?style=social)](https://github.com/sthrnilshaaa/fourpages)
 [![Support on Ko-fi](https://img.shields.io/badge/Ko--fi-support-ff5e5b?logo=ko-fi&logoColor=white)](https://ko-fi.com/L2L124TL7L)
@@ -60,12 +59,8 @@
 
 ## Download
 
-| | |
-|---|---|
-| **GitHub Releases** | [Latest APK](https://github.com/sthrnilshaaa/fourpages/releases/latest): pick the file for your phone (most phones: `arm64-v8a`). Updates itself from GitHub. |
-| **Google Play** | Coming soon. Updates through Google Play. |
-
-The two builds are the same app; they only differ in how they update.
+APK downloads will be on [GitHub Releases](https://github.com/sthrnilshaaa/fourpages/releases) soon.
+Until then, [build it from source](#build-from-source).
 
 ## Build from source
 
@@ -76,19 +71,14 @@ Requirements: [Flutter](https://docs.flutter.dev/get-started/install) (stable, s
 git clone https://github.com/sthrnilshaaa/fourpages.git
 cd fourpages
 flutter pub get
-flutter run                     # Android, github flavor
+flutter run                     # Android
 flutter test                    # unit & widget tests
 ```
 
-### Android flavors
-
-| Flavor      | Published on    | Updates |
-|-------------|-----------------|---------|
-| `github`    | GitHub Releases | Checks the latest GitHub release once a day (and from Settings › About › Check for updates), downloads the APK for the phone's CPU and opens the system installer. |
-| `playstore` | Google Play     | Google Play in-app update. Has no install-apps permission. |
+### Release build
 
 ```sh
-flutter build apk --release --flavor github --split-per-abi
+flutter build apk --release --split-per-abi
 ```
 
 Release builds are signed with the key in `android/key.properties` (git-ignored)
@@ -98,13 +88,13 @@ when present, otherwise with the debug key.
 
 ```
 lib/                 Flutter app (core / domain / data / application / presentation)
-android/app/         Android app; src/github and src/playstore hold the updater per flavor
+android/app/         Android app
 android/reader/      Native Kotlin reader engine (Readium parsing + own page engine)
 shaders/             Page-curl shader
 test/                Unit & widget tests
 third_party/         Vendored, patched packages (see third_party/README.md)
 media/               README / store images
-.github/             CI, release workflow, issue & PR templates
+.github/             CI (analyze & tests), issue & PR templates
 ```
 
 ## Translations
@@ -119,7 +109,6 @@ All UI text lives in [`lib/l10n/app_en.arb`](lib/l10n/app_en.arb). To add or imp
 4. Open a pull request. Partial translations are fine; missing strings fall back to English.
 
 Not a coder? Open a [translation issue](https://github.com/sthrnilshaaa/fourpages/issues/new?template=translation.yml).
-The Play Store listing is translated separately in the Play Console.
 
 ## Contributing
 
@@ -133,7 +122,7 @@ Fourpages is free and has no ads. If it's useful to you:
 
 - ☕ [Buy a coffee on Ko-fi](https://ko-fi.com/L2L124TL7L)
 - ⭐ [Star the repo](https://github.com/sthrnilshaaa/fourpages)
-- Rate it on Google Play or share it with a friend
+- Share it with a friend
 
 ## Acknowledgements
 
