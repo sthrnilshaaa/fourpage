@@ -44,7 +44,7 @@ dependencies:
   html_unescape: ^2.0.0
   equatable: ^2.0.5
   sakura_epub: ^0.1.3
-  share_plus: ^13.3.0
+  share_plus: ^13.3.1
   flutter_launcher_icons: ^0.11.0
   flutter_svg: ^2.3.0
   vector_math: ^2.4.3
