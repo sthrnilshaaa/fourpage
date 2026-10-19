@@ -12,6 +12,10 @@ import '../state/shelves.dart';
 import '../utils/library_sort.dart';
 import '../layout/browse_insets.dart';
 import '../layout/adaptive_sheet.dart';
+import '../layout/book_details_pane.dart';
+import '../layout/book_grid.dart';
+import '../layout/max_width.dart';
+import '../layout/window_class.dart';
 import '../theme/app_colors.dart';
 import '../utils/reader_launcher.dart';
 import '../widgets/add_book_dialog.dart';
@@ -32,6 +36,9 @@ class LibraryScreen extends StatefulWidget {
 class _LibraryScreenState extends State<LibraryScreen> {
   LibraryTabSection _selectedTab = LibraryTabSection.allBooks;
   String? _folderFilter;
+
+  /// Book shown in the expanded-width details pane (mouse selection).
+  BookItem? _selected;
 
   // Shelf tint colours from the Figma file (Rectangle 578/579/580, 50% alpha).
   static const _shelfTints = [Color(0x80097C9D), Color(0x80302E5F), Color(0x802E5F4B)];
@@ -93,9 +100,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
       builder: (context, _) {
         final books = LibraryController.instance.books;
 
-        return Scaffold(
-          backgroundColor: AppColors.figmaBackground,
-          body: Column(
+        final showDetails = context.windowClass.isExpanded && _selectedTab == LibraryTabSection.allBooks;
+        final main = Column(
             children: [
               BrowseTopBar(onSearchTap: _openSearch, onAddTap: _showAddBookDialog),
               const SizedBox(height: 3),
@@ -122,6 +128,25 @@ class _LibraryScreenState extends State<LibraryScreen> {
                     },
                   ),
                 ),
+              ),
+            ],
+          );
+
+        if (!showDetails) {
+          return Scaffold(backgroundColor: AppColors.figmaBackground, body: main);
+        }
+        final lib = LibraryController.instance;
+        final details = resolveDetailsBook(_selected, books, recent: lib.recentBooks);
+        return Scaffold(
+          backgroundColor: AppColors.figmaBackground,
+          body: Row(
+            children: [
+              Expanded(child: main),
+              BookDetailsPane(
+                book: details,
+                onOpen: details == null ? null : () => _openReader(details),
+                onMoveToShelf: details == null ? null : () => showMoveToShelfSheet(context, details),
+                shelfName: details == null ? null : lib.shelfOf(details)?.name,
               ),
             ],
           ),
@@ -187,6 +212,19 @@ class _LibraryScreenState extends State<LibraryScreen> {
               ],
             ),
           ),
+        if (!context.windowClass.isCompact)
+          Expanded(
+            child: BookGrid(
+              books: displayedBooks,
+              selected: context.windowClass.isExpanded
+                  ? resolveDetailsBook(_selected, displayedBooks, recent: LibraryController.instance.recentBooks)
+                  : null,
+              onOpen: _openReader,
+              onSelect: context.windowClass.isExpanded ? (b) => setState(() => _selected = b) : null,
+              onSecondary: (b, _) => showMoveToShelfSheet(context, b),
+            ),
+          )
+        else
         Expanded(
           child: ListView.separated(
             padding: EdgeInsets.fromLTRB(22, 20, 23, browseBottomPadding(context, compact: 140)),
@@ -487,10 +525,11 @@ class _LibraryScreenState extends State<LibraryScreen> {
       );
     }
 
-    return ListView(
+    final list = ListView(
       padding: EdgeInsets.fromLTRB(22, 20, 23, browseBottomPadding(context, compact: 140)),
       children: folderTiles,
     );
+    return context.windowClass.isCompact ? list : MaxWidth(maxWidth: 900, child: list);
   }
 }
 

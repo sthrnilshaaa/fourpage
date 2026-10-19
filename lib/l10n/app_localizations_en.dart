@@ -1275,4 +1275,31 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get guideSupport =>
       'Settings › About: support the app on Ko-fi, star it on GitHub, rate or share it.';
+
+  @override
+  String get continueReading => 'Continue reading';
+
+  @override
+  String get noBookSelected => 'Select a book to see its details';
+
+  @override
+  String get contents => 'Contents';
+
+  @override
+  String get readingSettings => 'Reading settings';
+
+  @override
+  String get showContents => 'Show contents';
+
+  @override
+  String get hideContents => 'Hide contents';
+
+  @override
+  String get showSettingsPane => 'Show settings';
+
+  @override
+  String get hideSettingsPane => 'Hide settings';
+
+  @override
+  String get notOnAShelf => 'Not on a shelf';
 }

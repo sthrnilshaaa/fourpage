@@ -2199,6 +2199,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Settings › About: support the app on Ko-fi, star it on GitHub, rate or share it.'**
   String get guideSupport;
+
+  /// No description provided for @continueReading.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue reading'**
+  String get continueReading;
+
+  /// No description provided for @noBookSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a book to see its details'**
+  String get noBookSelected;
+
+  /// No description provided for @contents.
+  ///
+  /// In en, this message translates to:
+  /// **'Contents'**
+  String get contents;
+
+  /// No description provided for @readingSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading settings'**
+  String get readingSettings;
+
+  /// No description provided for @showContents.
+  ///
+  /// In en, this message translates to:
+  /// **'Show contents'**
+  String get showContents;
+
+  /// No description provided for @hideContents.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide contents'**
+  String get hideContents;
+
+  /// No description provided for @showSettingsPane.
+  ///
+  /// In en, this message translates to:
+  /// **'Show settings'**
+  String get showSettingsPane;
+
+  /// No description provided for @hideSettingsPane.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide settings'**
+  String get hideSettingsPane;
+
+  /// No description provided for @notOnAShelf.
+  ///
+  /// In en, this message translates to:
+  /// **'Not on a shelf'**
+  String get notOnAShelf;
 }
 
 class _AppLocalizationsDelegate
