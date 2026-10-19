@@ -40,8 +40,8 @@ dependencies {
 
     // androidx.core 1.19 (pulled in by Readium) requires AGP 9.1; this build is on 9.0.1. A Flutter plugin needs 1.18.
     constraints {
-        implementation("androidx.core:core:1.18.0") { version { strictly("1.18.0") } }
-        implementation("androidx.core:core-ktx:1.18.0") { version { strictly("1.18.0") } }
+        implementation("androidx.core:core:1.19.1") { version { strictly("1.19.1") } }
+        implementation("androidx.core:core-ktx:1.19.1") { version { strictly("1.19.1") } }
     }
 
     testImplementation("junit:junit:4.13.2")
