@@ -904,6 +904,7 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
       SnackBar(
         content: Text(l10n.highlightRemoved),
         duration: const Duration(seconds: 6),
+        persist: false,
         behavior: SnackBarBehavior.floating,
         action: SnackBarAction(
           label: l10n.undo,

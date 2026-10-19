@@ -337,6 +337,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(
         duration: const Duration(seconds: 3),
+        persist: false,
         content: Text(shelf != null ? l10n.movedToShelf(shelf.name) : l10n.removedFromShelf(from?.name ?? '')),
         action: SnackBarAction(
           label: l10n.undo,

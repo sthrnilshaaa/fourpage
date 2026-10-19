@@ -885,6 +885,7 @@ class _SakuraReaderScreenState extends State<SakuraReaderScreen>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(l10n.highlightRemoved),
+          persist: false,
           action: SnackBarAction(
             label: l10n.undo,
             onPressed: () {

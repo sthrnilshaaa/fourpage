@@ -364,8 +364,9 @@ class UnderlineTabs extends StatelessWidget {
 class FormatBadge extends StatelessWidget {
   final String format;
 
-  /// Colour of the outline, fold and label.
-  final Color color;
+  /// Colour of the outline, fold and label. Null = the list-row default,
+  /// which follows the theme.
+  final Color? color;
 
   /// Label colour, when it differs from [color] (Search's faint variant).
   final Color? labelColor;
@@ -376,13 +377,19 @@ class FormatBadge extends StatelessWidget {
   const FormatBadge({
     super.key,
     required this.format,
-    this.color = const Color(0xFF404040),
+    this.color,
     this.labelColor,
     this.filled = true,
   });
 
   @override
   Widget build(BuildContext context) {
+    final light = AppThemeController.instance.isLight;
+    // On app surfaces (no explicit colour) light mode gets a light fill and a
+    // soft ink outline instead of the dark-design black fill.
+    final onSurface = color == null;
+    final ink = color ?? (light ? AppColors.fg.withValues(alpha: 0.35) : const Color(0xFF404040));
+    final fill = onSurface && light ? AppColors.figmaSurface : Colors.black; // the SVG carries the 75% opacity
     return SizedBox(
       width: 16.87,
       height: 23,
@@ -397,10 +404,11 @@ class FormatBadge extends StatelessWidget {
                 AssetConstants.formatFileFill,
                 width: 16.5,
                 height: 21,
+                color: fill,
               ),
             ),
           Positioned.fill(
-            child: FigmaIcon(AssetConstants.formatFileOutline, color: color),
+            child: FigmaIcon(AssetConstants.formatFileOutline, color: ink),
           ),
           Positioned(
             left: 8.38,
@@ -409,7 +417,7 @@ class FormatBadge extends StatelessWidget {
               AssetConstants.formatFileFold,
               width: 8.0,
               height: 7.14,
-              color: color,
+              color: ink,
             ),
           ),
           Positioned(
@@ -424,7 +432,7 @@ class FormatBadge extends StatelessWidget {
                 height: 1,
                 fontWeight: FontWeight.w700,
                 letterSpacing: -0.14,
-                color: labelColor ?? color,
+                color: labelColor ?? ink,
               ),
             ),
           ),

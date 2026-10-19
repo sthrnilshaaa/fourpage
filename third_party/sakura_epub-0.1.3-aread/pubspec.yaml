@@ -71,6 +71,9 @@ flutter:
     - family: Lora
       fonts:
         - asset: lib/assets/fonts/Lora-Var.ttf
+    - family: Source Serif 4
+      fonts:
+        - asset: lib/assets/fonts/SourceSerif4-Var.ttf
     - family: Ubuntu
       fonts:
         - asset: lib/assets/fonts/Ubuntu-Var.ttf

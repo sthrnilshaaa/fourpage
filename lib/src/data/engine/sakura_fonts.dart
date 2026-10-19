@@ -4,6 +4,7 @@
 library;
 
 import 'dart:convert';
+
 import 'package:flutter/services.dart' show rootBundle;
 
 class SakuraFontOption {
@@ -29,22 +30,32 @@ class SakuraFonts {
 
   static const literata = SakuraFontOption('Literata', 'Literata', 'lib/assets/fonts/Literata-Var.ttf');
   static const lora = SakuraFontOption('Lora', 'Lora', 'lib/assets/fonts/Lora-Var.ttf');
-  static const atkinsonHyperlegible =
-      SakuraFontOption('Atkinson Hyperlegible', 'Atkinson Hyperlegible', 'lib/assets/fonts/AtkinsonHyperlegible-Regular.ttf');
-  static const ibmPlexSans =
-      SakuraFontOption('IBM Plex Sans', 'IBM Plex Sans', 'lib/assets/fonts/IBMPlexSans-Regular.ttf');
+  static const sourceSerif = SakuraFontOption(
+    'Source Serif',
+    'Source Serif 4',
+    'lib/assets/fonts/SourceSerif4-Var.ttf',
+  );
+  static const atkinsonHyperlegible = SakuraFontOption(
+    'Atkinson Hyperlegible',
+    'Atkinson Hyperlegible',
+    'lib/assets/fonts/AtkinsonHyperlegible-Regular.ttf',
+  );
+  static const ibmPlexSans = SakuraFontOption(
+    'IBM Plex Sans',
+    'IBM Plex Sans',
+    'lib/assets/fonts/IBMPlexSans-Regular.ttf',
+  );
 
-  static const List<SakuraFontOption> options = [
-    literata,
-    lora,
-    atkinsonHyperlegible,
-    ibmPlexSans,
-  ];
+  static const List<SakuraFontOption> options = [literata, lora, sourceSerif, atkinsonHyperlegible, ibmPlexSans];
 
-  static SakuraFontOption byFamily(String flutterFontFamily) => options.firstWhere(
-        (f) => f.flutterFontFamily == flutterFontFamily,
-        orElse: () => literata,
-      );
+  /// Fonts that were dropped, mapped to their free stand-in so a saved
+  /// preference keeps a similar look.
+  static const Map<String, String> _renamed = {'NewYork': 'Source Serif 4'};
+
+  static SakuraFontOption byFamily(String flutterFontFamily) {
+    final family = _renamed[flutterFontFamily] ?? flutterFontFamily;
+    return options.firstWhere((f) => f.flutterFontFamily == family, orElse: () => literata);
+  }
 
   static final Map<String, String> _base64Cache = {};
 
