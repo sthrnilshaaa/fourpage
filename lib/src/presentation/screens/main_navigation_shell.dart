@@ -8,6 +8,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../core/constants/asset_constants.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme_controller.dart';
+import '../layout/app_nav_rail.dart';
+import '../layout/window_class.dart';
 import '../widgets/app_chrome.dart';
 import '../widgets/update_dialog.dart';
 import 'home_screen.dart';
@@ -58,6 +60,9 @@ class MainNavigationShellState extends State<MainNavigationShell> {
     _searchOpen = false;
   });
 
+  // Keeps each tab's state when the window crosses a breakpoint.
+  final _contentKey = GlobalKey();
+
   final List<Widget> _screens = const [
     HomeScreen(),
     LibraryScreen(),
@@ -67,31 +72,30 @@ class MainNavigationShellState extends State<MainNavigationShell> {
 
   // Icons exported from the Figma nav ("Frame 707"); Settings has no lime
   // variant in the file, so its active state is the same glyph tinted lime.
-  final List<({String label, String icon, String activeIcon, Size size})>
-  _tabs = [
-    (
+  final List<NavDestination> _tabs = [
+    NavDestination(
       label: l10n.home,
       icon: AssetConstants.navHome,
       activeIcon: AssetConstants.navHomeActive,
-      size: Size(25.3, 25.3),
+      size: const Size(25.3, 25.3),
     ),
-    (
+    NavDestination(
       label: l10n.library,
       icon: AssetConstants.navLibrary,
       activeIcon: AssetConstants.navLibraryActive,
-      size: Size(24.9, 24.9),
+      size: const Size(24.9, 24.9),
     ),
-    (
+    NavDestination(
       label: l10n.saved,
       icon: AssetConstants.navSaved,
       activeIcon: AssetConstants.navSavedActive,
-      size: Size(22.1, 24.9),
+      size: const Size(22.1, 24.9),
     ),
-    (
+    NavDestination(
       label: l10n.settings,
       icon: AssetConstants.navSettings,
       activeIcon: AssetConstants.navSettings,
-      size: Size(22.1, 24.9),
+      size: const Size(22.1, 24.9),
     ),
   ];
 
@@ -114,6 +118,52 @@ class MainNavigationShellState extends State<MainNavigationShell> {
 
   @override
   Widget build(BuildContext context) {
+    final windowClass = context.windowClass;
+    if (!windowClass.isCompact) return _buildWithRail(windowClass);
+    return _buildCompact(context);
+  }
+
+  Widget _searchOverlay() => Positioned.fill(
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 220),
+          child: _searchOpen
+              ? SearchScreen(key: const ValueKey('search'), onClose: closeSearch)
+              : const SizedBox.shrink(),
+        ),
+      );
+
+  /// Medium/expanded: left rail or sidebar, content beside it, no pill.
+  Widget _buildWithRail(WindowClass windowClass) {
+    return PopScope(
+      canPop: !_searchOpen,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop && _searchOpen) closeSearch();
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.figmaBackground,
+        body: Row(
+          children: [
+            AppNavRail(
+              destinations: _tabs,
+              selectedIndex: _currentIndex,
+              onSelected: _selectTab,
+              extended: windowClass.isExpanded,
+            ),
+            Expanded(
+              child: Stack(
+                children: [
+                  IndexedStack(key: _contentKey, index: _currentIndex, children: _screens),
+                  _searchOverlay(),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCompact(BuildContext context) {
     final bottomPadding = MediaQuery.of(context).padding.bottom;
     // Keep the design's 36pt gap on phones without a gesture inset, but don't
     // stack it on top of a large system inset either.
@@ -131,21 +181,11 @@ class MainNavigationShellState extends State<MainNavigationShell> {
         resizeToAvoidBottomInset: false,
         body: Stack(
           children: [
-            IndexedStack(index: _currentIndex, children: _screens),
+            IndexedStack(key: _contentKey, index: _currentIndex, children: _screens),
 
             // Search sits over the tab content (not pushed as a route) so the
             // nav bar stays visible, matching the Figma Search_page.
-            Positioned.fill(
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 220),
-                child: _searchOpen
-                    ? SearchScreen(
-                        key: const ValueKey('search'),
-                        onClose: closeSearch,
-                      )
-                    : const SizedBox.shrink(),
-              ),
-            ),
+            _searchOverlay(),
 
             // Bottom fade so list content dissolves under the floating nav.
             Positioned(

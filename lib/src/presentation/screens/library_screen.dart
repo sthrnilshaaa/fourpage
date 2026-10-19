@@ -10,6 +10,7 @@ import '../platform/folder_tree.dart';
 import '../state/library_controller.dart';
 import '../state/shelves.dart';
 import '../utils/library_sort.dart';
+import '../layout/browse_insets.dart';
 import '../theme/app_colors.dart';
 import '../utils/reader_launcher.dart';
 import '../widgets/add_book_dialog.dart';
@@ -187,7 +188,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
           ),
         Expanded(
           child: ListView.separated(
-            padding: const EdgeInsets.fromLTRB(22, 20, 23, 140),
+            padding: EdgeInsets.fromLTRB(22, 20, 23, browseBottomPadding(context, compact: 140)),
             itemCount: displayedBooks.length,
             separatorBuilder: (_, _) => const SizedBox(height: 22),
             itemBuilder: (context, index) {
@@ -239,7 +240,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
           child: ListView(
             key: _shelvesListKey,
             controller: _shelvesScroll,
-            padding: const EdgeInsets.fromLTRB(11, 6, 12, 140),
+            padding: EdgeInsets.fromLTRB(11, 6, 12, browseBottomPadding(context, compact: 140)),
             children: [
               if (shelves.isEmpty)
                 Padding(
@@ -486,7 +487,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
     }
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(22, 20, 23, 140),
+      padding: EdgeInsets.fromLTRB(22, 20, 23, browseBottomPadding(context, compact: 140)),
       children: folderTiles,
     );
   }

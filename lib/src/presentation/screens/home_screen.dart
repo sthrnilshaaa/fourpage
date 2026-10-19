@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/constants/asset_constants.dart';
 import '../state/library_controller.dart';
+import '../layout/browse_insets.dart';
 import '../theme/app_colors.dart';
 import '../utils/reader_launcher.dart';
 import '../widgets/add_book_dialog.dart';
@@ -60,7 +61,7 @@ class HomeScreen extends StatelessWidget {
                     ? _buildEmptyState(context)
                     : ListView(
                         physics: const BouncingScrollPhysics(),
-                        padding: const EdgeInsets.only(top: 2, bottom: 140),
+                        padding: EdgeInsets.only(top: 2, bottom: browseBottomPadding(context, compact: 140)),
                         children: [
                           // 1. "Recent Reading": books by when they were
                           // last opened (hidden until one has been).

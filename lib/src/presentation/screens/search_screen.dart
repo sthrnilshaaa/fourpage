@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/constants/asset_constants.dart';
 import '../state/library_controller.dart';
+import '../layout/browse_insets.dart';
 import '../theme/app_colors.dart';
 import '../utils/reader_launcher.dart';
 import '../widgets/add_book_dialog.dart';
@@ -152,7 +153,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 child: matchingBooks.isEmpty
                     ? EmptyHint(l10n.noMatchingBooksFound)
                     : ListView.separated(
-                        padding: const EdgeInsets.fromLTRB(20, 0, 23, 140),
+                        padding: EdgeInsets.fromLTRB(20, 0, 23, browseBottomPadding(context, compact: 140)),
                         itemCount: matchingBooks.length,
                         separatorBuilder: (_, _) => const SizedBox(height: 22),
                         itemBuilder: (context, index) {

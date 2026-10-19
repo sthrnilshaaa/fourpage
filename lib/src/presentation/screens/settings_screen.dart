@@ -8,6 +8,7 @@ import '../../core/constants/app_constants.dart';
 import '../../domain/entities/reader_preferences.dart';
 import '../state/app_preferences.dart';
 import '../state/library_controller.dart';
+import '../layout/browse_insets.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme_controller.dart';
 import '../platform/app_haptics.dart';
@@ -142,7 +143,7 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
         body: SafeArea(
           bottom: false,
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 150),
+            padding: EdgeInsets.fromLTRB(20, 16, 20, browseBottomPadding(context, compact: 150)),
             children: [
               Row(
                 children: [

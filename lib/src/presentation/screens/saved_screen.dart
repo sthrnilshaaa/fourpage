@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../aread.dart';
 import '../state/library_controller.dart';
+import '../layout/browse_insets.dart';
 import '../theme/app_colors.dart';
 import '../utils/reader_launcher.dart';
 import '../widgets/add_book_dialog.dart';
@@ -94,7 +95,7 @@ class _SavedScreenState extends State<SavedScreen> {
     }
 
     return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(22, 12, 21, 140),
+      padding: EdgeInsets.fromLTRB(22, 12, 21, browseBottomPadding(context, compact: 140)),
       itemCount: quotes.length,
       separatorBuilder: (_, _) => Divider(height: 1, thickness: 1, color: AppColors.figmaDivider),
       itemBuilder: (context, index) {
