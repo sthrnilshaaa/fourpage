@@ -62,4 +62,30 @@ void main() {
     await _pump(tester, focus: true);
     expect(tester.element(find.byKey(_book)), same(element));
   });
+
+  testWidgets('book sees its own pane as the screen size, with no system padding', (tester) async {
+    tester.view.physicalSize = const Size(1400, 900);
+    tester.view.devicePixelRatio = 1;
+    tester.view.padding = const FakeViewPadding(top: 30);
+    addTearDown(tester.view.reset);
+    late MediaQueryData seen;
+    await tester.pumpWidget(MaterialApp(
+      home: ReaderPaneLayout(
+        book: Builder(builder: (c) {
+          seen = MediaQuery.of(c);
+          return const SizedBox.expand();
+        }),
+        contents: const SizedBox.expand(),
+        settings: const SizedBox.expand(),
+        topBar: const SizedBox(height: 56),
+        bottomBar: const SizedBox(height: 44),
+        focusMode: false,
+        contentsOpen: true,
+        settingsOpen: true,
+        background: Colors.black,
+      ),
+    ));
+    expect(seen.size, const Size(1400 - 300 - 320, 900 - 56 - 44));
+    expect(seen.padding, EdgeInsets.zero);
+  });
 }

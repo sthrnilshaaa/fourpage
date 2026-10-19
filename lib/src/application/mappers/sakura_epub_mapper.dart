@@ -96,8 +96,10 @@ class SakuraEpubMapper {
   static EpubTheme themeForPreferences(ReaderPreferences prefs) =>
       themeFor(prefs.theme, textAlignment: prefs.textAlignment, lineHeight: prefs.lineHeight);
 
-  static EpubDisplaySettings displaySettingsFor(ReaderPreferences prefs) {
+  /// [spread]: two pages side by side (wide book area, paginated only).
+  static EpubDisplaySettings displaySettingsFor(ReaderPreferences prefs, {bool spread = false}) {
     return EpubDisplaySettings(
+      spread: spread ? EpubSpread.always : EpubSpread.none,
       fontSize: prefs.fontSize.round(),
       flow: prefs.scrollMode == ScrollMode.continuous ? EpubFlow.scrolled : EpubFlow.paginated,
       theme: themeForPreferences(prefs),

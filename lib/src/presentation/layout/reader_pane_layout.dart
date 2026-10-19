@@ -63,7 +63,25 @@ class _ReaderPaneLayoutState extends State<ReaderPaneLayout> {
   Widget build(BuildContext context) {
     final w = widget;
     final chrome = readerUsesPanes(context) && !w.focusMode;
-    final book = KeyedSubtree(key: _bookKey, child: w.book);
+    // With panes, the book's "screen" is its pane: engines that size pages,
+    // menus and page curls from MediaQuery then work unchanged. The bars
+    // handle the system insets. Same tree shape in every mode, so the book
+    // (a WebView, for sakura) is never rebuilt.
+    final book = LayoutBuilder(
+      builder: (context, constraints) {
+        final media = MediaQuery.of(context);
+        return MediaQuery(
+          data: chrome
+              ? media.copyWith(
+                  size: constraints.biggest,
+                  padding: EdgeInsets.zero,
+                  viewPadding: EdgeInsets.zero,
+                )
+              : media,
+          child: KeyedSubtree(key: _bookKey, child: w.book),
+        );
+      },
+    );
     return ColoredBox(
       color: w.background,
       child: Column(

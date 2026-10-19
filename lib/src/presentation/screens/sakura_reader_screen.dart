@@ -34,6 +34,9 @@ import '../utils/reader_tap_tracker.dart';
 import '../../core/constants/asset_constants.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme_controller.dart';
+import '../layout/adaptive_sheet.dart';
+import '../layout/reader_pane_layout.dart';
+import '../layout/spread.dart';
 import '../widgets/app_chrome.dart';
 import '../widgets/page_curl.dart';
 import '../widgets/reader_page_skeleton.dart';
@@ -132,6 +135,17 @@ class _SakuraReaderScreenState extends State<SakuraReaderScreen>
   bool _topVisible = false;
   bool _bottomVisible = false;
   bool get _controlsVisible => _topVisible || _bottomVisible;
+
+  /// Expanded windows: panes and toolbar show unless the reader tapped into
+  /// focus mode. The phone-style floating bars (and their zoom-out) stay off.
+  bool _focusMode = false;
+  bool _panes = false;
+
+  /// Two-page spread currently applied to epub.js (book pane >= 900 wide).
+  bool _spread = false;
+  Timer? _spreadTimer;
+
+  final _readerFocus = FocusNode(debugLabel: 'sakura-reader');
   Timer? _topHideTimer;
   Timer? _bottomHideTimer;
   static const _topAutoHide = Duration(seconds: 3);
@@ -298,7 +312,29 @@ class _SakuraReaderScreenState extends State<SakuraReaderScreen>
     }
   }
 
-  void _toggleControls() => _setControls(!_controlsVisible);
+  void _toggleControls() {
+    if (_panes) {
+      setState(() => _focusMode = !_focusMode);
+      return;
+    }
+    _setControls(!_controlsVisible);
+  }
+
+  /// Book pane width changed: switch between one and two pages (debounced,
+  /// so dragging a window edge doesn't re-lay out the book every frame).
+  void _syncSpread(double paneWidth) {
+    final want = useSpread(paneWidth) && _preferences.scrollMode != ScrollMode.continuous;
+    if (want == _spread) {
+      _spreadTimer?.cancel();
+      return;
+    }
+    _spreadTimer?.cancel();
+    _spreadTimer = Timer(const Duration(milliseconds: 200), () {
+      if (!mounted || !_epubReady) return;
+      _spread = want;
+      _epubController.setSpread(spread: want ? EpubSpread.always : EpubSpread.none);
+    });
+  }
 
   // Header measured for the scrolled-mode shift (see _syncHeaderShift).
   final _topBarKey = GlobalKey();
@@ -316,6 +352,8 @@ class _SakuraReaderScreenState extends State<SakuraReaderScreen>
 
   void _setControls(bool visible) {
     if (!mounted) return;
+    // Expanded: the toolbar and panes replace the floating bars.
+    if (visible && _panes) return;
     setState(() {
       _topVisible = visible;
       _bottomVisible = visible;
@@ -397,6 +435,8 @@ class _SakuraReaderScreenState extends State<SakuraReaderScreen>
     _stripSyncTimer?.cancel();
     _shotSaveTimer?.cancel();
     _resizeTimer?.cancel();
+    _spreadTimer?.cancel();
+    _readerFocus.dispose();
     _openingShot?.dispose();
     _turnAnim.dispose();
     _turn?.dispose();
@@ -791,7 +831,7 @@ class _SakuraReaderScreenState extends State<SakuraReaderScreen>
 
   void _searchSelection(String text) {
     setState(() => _selectionMenu = null);
-    showModalBottomSheet(
+    showAdaptiveSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -1538,20 +1578,74 @@ class _SakuraReaderScreenState extends State<SakuraReaderScreen>
     );
   }
 
+  void _onPreferencesChanged(ReaderPreferences newPrefs) {
+    setState(() => _preferences = newPrefs);
+    _session.dispatchCommand(UpdatePreferencesCommand(newPrefs));
+    _applyPreferencesLive(newPrefs);
+  }
+
+  /// Expanded: toolbar above the panes (back | title + % | actions).
+  Widget _buildToolbar(BuildContext context) {
+    return Container(
+      height: 64,
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      decoration: BoxDecoration(
+        color: AppColors.figmaReaderBackground,
+        border: Border(bottom: BorderSide(color: AppColors.dividerSubtle)),
+      ),
+      child: Row(
+        children: [
+          IconButton(
+            icon: const FigmaIcon(AssetConstants.iconBack, width: 9, height: 14),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.book.publication.metadata.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.dmSans(fontSize: 15, height: 21 / 15, color: AppColors.fg),
+                ),
+                Text(
+                  l10n.percentRead((_progress * 100).round()),
+                  maxLines: 1,
+                  style: GoogleFonts.dmSans(fontSize: 13, height: 20 / 13, color: AppColors.figmaTextFaint),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            tooltip: l10n.searchInBook,
+            icon: Icon(Icons.search_rounded, color: AppColors.fg, size: 22),
+            onPressed: _showSearchSheet,
+          ),
+          IconButton(
+            tooltip: l10n.bookmarkThisPage,
+            icon: Icon(Icons.bookmark_add_outlined, color: AppColors.fg, size: 22),
+            onPressed: _addBookmark,
+          ),
+          ReaderPaneToggles(color: AppColors.fg),
+          IconButton(icon: const _ReaderMenuGlyph(), onPressed: _showReaderMenu),
+        ],
+      ),
+    );
+  }
+
   void _showCustomizationSheet() {
     // Changes show live on the page, so not on a zoomed-out snapshot.
     _exitZoom();
-    showModalBottomSheet(
+    showAdaptiveSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => SakuraCustomizationSheet(
         preferences: _preferences,
-        onChanged: (newPrefs) {
-          setState(() => _preferences = newPrefs);
-          _session.dispatchCommand(UpdatePreferencesCommand(newPrefs));
-          _applyPreferencesLive(newPrefs);
-        },
+        onChanged: _onPreferencesChanged,
         brightness: _brightness,
         onBrightnessChanged: (value) => setState(() => _brightness = value),
       ),
@@ -1559,7 +1653,7 @@ class _SakuraReaderScreenState extends State<SakuraReaderScreen>
   }
 
   void _showTocSheet() {
-    showModalBottomSheet(
+    showAdaptiveSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -1572,7 +1666,7 @@ class _SakuraReaderScreenState extends State<SakuraReaderScreen>
   }
 
   void _showSearchSheet() {
-    showModalBottomSheet(
+    showAdaptiveSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -1585,9 +1679,15 @@ class _SakuraReaderScreenState extends State<SakuraReaderScreen>
 
   @override
   Widget build(BuildContext context) {
-    final scaffold = Scaffold(
-      backgroundColor: SakuraEpubMapper.pageColorFor(_preferences.theme),
-      body: FutureBuilder<File>(
+    final panes = readerUsesPanes(context);
+    if (panes != _panes) {
+      _panes = panes;
+      // Into expanded: drop the floating bars (and their zoom-out).
+      if (panes && _controlsVisible) WidgetsBinding.instance.addPostFrameCallback((_) => _setControls(false));
+    }
+    final prefs = AppPreferences.instance;
+    final pageColor = SakuraEpubMapper.pageColorFor(_preferences.theme);
+    final bookView = FutureBuilder<File>(
         future: _bookFileFuture,
         builder: (context, snapshot) {
           if (snapshot.hasError) {
@@ -1604,6 +1704,7 @@ class _SakuraReaderScreenState extends State<SakuraReaderScreen>
           }
 
           final media = MediaQuery.of(context);
+          _syncSpread(media.size.width);
           // The page keeps one fixed size; the controls float over it.
           // Resizing it with the controls (as before) made epub.js re-lay
           // out the book on every animation frame - the show/hide flicker,
@@ -1633,7 +1734,10 @@ class _SakuraReaderScreenState extends State<SakuraReaderScreen>
                   epubSource: EpubSource.fromFile(snapshot.data!),
                   servedBook: _servedBook,
                   initialCfi: _startCfi,
-                  displaySettings: SakuraEpubMapper.displaySettingsFor(_preferences),
+                  displaySettings: SakuraEpubMapper.displaySettingsFor(
+                    _preferences,
+                    spread: _spread = useSpread(media.size.width) && _preferences.scrollMode != ScrollMode.continuous,
+                  ),
                   onEpubLoaded: _onEpubLoaded,
                   onLocationLoaded: _onLocationLoaded,
                   onChaptersLoaded: _onChaptersLoaded,
@@ -1723,10 +1827,44 @@ class _SakuraReaderScreenState extends State<SakuraReaderScreen>
             ],
           );
         },
+    );
+
+    final scaffold = Scaffold(
+      backgroundColor: pageColor,
+      body: ListenableBuilder(
+        listenable: prefs,
+        builder: (context, _) => ReaderPaneLayout(
+          background: pageColor,
+          focusMode: _focusMode,
+          contentsOpen: prefs.readerContentsPaneOpen,
+          settingsOpen: prefs.readerSettingsPaneOpen,
+          topBar: SafeArea(bottom: false, child: _buildToolbar(context)),
+          contents: ReaderFocusReturn(
+            focusNode: _readerFocus,
+            child: SakuraTocSheet(
+              embedded: true,
+              chapters: _toc,
+              notes: _session.state.annotations,
+              onNavigateToHref: (href) => _epubController.display(cfi: href),
+            ),
+          ),
+          settings: ReaderFocusReturn(
+            focusNode: _readerFocus,
+            child: SakuraCustomizationSheet(
+              embedded: true,
+              preferences: _preferences,
+              onChanged: _onPreferencesChanged,
+              brightness: _brightness,
+              onBrightnessChanged: (value) => setState(() => _brightness = value),
+            ),
+          ),
+          book: bookView,
+        ),
       ),
     );
 
     return Focus(
+      focusNode: _readerFocus,
       autofocus: true,
       onKeyEvent: (node, event) {
         if (event is! KeyDownEvent) return KeyEventResult.ignored;
