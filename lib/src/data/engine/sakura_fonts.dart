@@ -48,14 +48,8 @@ class SakuraFonts {
 
   static const List<SakuraFontOption> options = [literata, lora, sourceSerif, atkinsonHyperlegible, ibmPlexSans];
 
-  /// Fonts that were dropped, mapped to their free stand-in so a saved
-  /// preference keeps a similar look.
-  static const Map<String, String> _renamed = {'NewYork': 'Source Serif 4'};
-
-  static SakuraFontOption byFamily(String flutterFontFamily) {
-    final family = _renamed[flutterFontFamily] ?? flutterFontFamily;
-    return options.firstWhere((f) => f.flutterFontFamily == family, orElse: () => literata);
-  }
+  static SakuraFontOption byFamily(String flutterFontFamily) =>
+      options.firstWhere((f) => f.flutterFontFamily == flutterFontFamily, orElse: () => literata);
 
   static final Map<String, String> _base64Cache = {};
 
