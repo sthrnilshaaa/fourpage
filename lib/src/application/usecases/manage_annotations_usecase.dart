@@ -11,6 +11,13 @@ class ManageAnnotationsUseCase {
 
   ManageAnnotationsUseCase(this._repository);
 
+  static int _sequence = 0;
+
+  /// Unique even when called many times in the same millisecond (a plain
+  /// timestamp id made two quick highlights share an id).
+  static String _newId(String prefix) =>
+      '$prefix-${DateTime.now().microsecondsSinceEpoch.toRadixString(36)}-${(_sequence++).toRadixString(36)}';
+
   Future<Annotation> createAnnotation({
     required String publicationId,
     required Locator locator,
@@ -20,7 +27,7 @@ class ManageAnnotationsUseCase {
     AnnotationType type = AnnotationType.highlight,
   }) async {
     final annotation = Annotation(
-      id: 'ann-${DateTime.now().millisecondsSinceEpoch}',
+      id: _newId('ann'),
       publicationId: publicationId,
       locator: locator,
       textQuote: textQuote ?? locator.text?.highlight,
@@ -51,7 +58,7 @@ class ManageAnnotationsUseCase {
     required String title,
   }) async {
     final bookmark = Bookmark(
-      id: 'bm-${DateTime.now().millisecondsSinceEpoch}',
+      id: _newId('bm'),
       publicationId: publicationId,
       locator: locator,
       title: title,
