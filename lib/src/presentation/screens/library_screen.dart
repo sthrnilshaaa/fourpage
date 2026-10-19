@@ -11,6 +11,7 @@ import '../state/library_controller.dart';
 import '../state/shelves.dart';
 import '../utils/library_sort.dart';
 import '../layout/browse_insets.dart';
+import '../layout/adaptive_sheet.dart';
 import '../theme/app_colors.dart';
 import '../utils/reader_launcher.dart';
 import '../widgets/add_book_dialog.dart';
@@ -45,7 +46,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
   /// The arrow on the selected tab: choose how the library is ordered.
   Future<void> _showSortSheet() async {
     final current = AppPreferences.instance.librarySort;
-    final picked = await showModalBottomSheet<LibrarySort>(
+    final picked = await showAdaptiveSheet<LibrarySort>(
       context: context,
       backgroundColor: AppColors.sheetSurface,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),

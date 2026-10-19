@@ -8,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../l10n/l10n.dart';
 import '../state/library_controller.dart';
 import '../state/shelves.dart';
+import '../layout/adaptive_sheet.dart';
 import '../theme/app_colors.dart';
 import 'book_cover_widget.dart';
 
@@ -160,7 +161,7 @@ Future<void> showAddBooksToShelfSheet(BuildContext context, Shelf shelf) async {
     _snack(context, l10n.noBooksToAdd);
     return;
   }
-  final picked = await showModalBottomSheet<Set<String>>(
+  final picked = await showAdaptiveSheet<Set<String>>(
     context: context,
     isScrollControlled: true,
     backgroundColor: AppColors.sheetSurface,
@@ -181,7 +182,7 @@ Future<T?> _showSheet<T>(
   required String title,
   required List<Widget> Function(void Function(T) pop) children,
 }) {
-  return showModalBottomSheet<T>(
+  return showAdaptiveSheet<T>(
     context: context,
     isScrollControlled: true,
     backgroundColor: AppColors.sheetSurface,
