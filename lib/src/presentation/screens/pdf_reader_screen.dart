@@ -12,6 +12,9 @@ import '../../data/pdf/pdf_document.dart';
 import '../state/library_controller.dart';
 import '../state/reader_usage_mixin.dart';
 import '../theme/app_colors.dart';
+import '../layout/pdf_page_layout.dart';
+import '../layout/spread.dart';
+import '../layout/window_class.dart';
 import '../widgets/app_chrome.dart';
 
 /// PDF reader: pages rendered by the platform (Android PdfRenderer), shown as
@@ -57,6 +60,8 @@ class _PdfReaderScreenState extends State<PdfReaderScreen>
   double _viewportHeight = 0;
   double _topPad = 0;
   List<double> _pageTops = const [];
+  List<Rect> _pageRects = const [];
+  bool _spread = false; // two pages per row (wide window, portrait PDF)
   double _contentHeight = 0;
 
   // Rendered pages: a screen-resolution image for every nearby page, plus a
@@ -111,29 +116,27 @@ class _PdfReaderScreenState extends State<PdfReaderScreen>
     super.dispose();
   }
 
-  double _pageHeight(int index) {
-    final ratio = _doc!.aspectRatios[index];
-    return (_viewportWidth - 2 * _pageGap) / (ratio <= 0 ? 0.707 : ratio);
-  }
-
-  void _layout(double width, double height, double topPad, double bottomPad) {
+  void _layout(double width, double height, double topPad, double bottomPad, {required bool allowSpread}) {
+    final doc = _doc!;
+    final spread = allowSpread && useSpread(width) && pdfWantsSpread(doc.aspectRatios);
     if (width == _viewportWidth &&
         height == _viewportHeight &&
         topPad == _topPad &&
+        spread == _spread &&
         _pageTops.isNotEmpty)
       return;
     _viewportWidth = width;
     _viewportHeight = height;
     _topPad = topPad;
-    final doc = _doc!;
-    final tops = <double>[];
-    var y = topPad;
-    for (var i = 0; i < doc.pageCount; i++) {
-      tops.add(y);
-      y += _pageHeight(i) + _pageGap;
+    if (spread != _spread) {
+      _spread = spread;
+      _cache.clear(); // page bitmaps change width
+      _hiCache.clear();
     }
-    _pageTops = tops;
-    _contentHeight = math.max(y + bottomPad, height);
+    _pageRects = layoutPdfPages(doc.aspectRatios, width, gap: _pageGap, spread: spread, top: topPad);
+    _pageTops = [for (final r in _pageRects) r.top];
+    final end = _pageRects.isEmpty ? topPad : _pageRects.map((r) => r.bottom).reduce(math.max) + _pageGap;
+    _contentHeight = math.max(end + bottomPad, height);
   }
 
   /// Index of the page at document y [y].
@@ -290,7 +293,7 @@ class _PdfReaderScreenState extends State<PdfReaderScreen>
     if (page != null) _jumpTo(page - 1);
   }
 
-  int get _baseWidthPx => ((_viewportWidth - 2 * _pageGap) * _devicePixelRatio)
+  int get _baseWidthPx => ((_spread ? (_viewportWidth - 3 * _pageGap) / 2 : _viewportWidth - 2 * _pageGap) * _devicePixelRatio)
       .clamp(400, 2000)
       .round();
 
@@ -425,6 +428,7 @@ class _PdfReaderScreenState extends State<PdfReaderScreen>
           constraints.maxHeight,
           media.padding.top + 77,
           media.padding.bottom + 24,
+          allowSpread: !context.windowClass.isCompact,
         );
         return GestureDetector(
           onTap: () => setState(() => _controlsVisible = !_controlsVisible),
@@ -448,11 +452,8 @@ class _PdfReaderScreenState extends State<PdfReaderScreen>
                 child: Stack(
                   children: [
                     for (var i = first; i <= last; i++)
-                      Positioned(
-                        left: _pageGap,
-                        right: _pageGap,
-                        top: _pageTops[i],
-                        height: _pageHeight(i),
+                      Positioned.fromRect(
+                        rect: _pageRects[i],
                         child: _PdfPage(
                           key: ValueKey(i),
                           base: _render(i),
