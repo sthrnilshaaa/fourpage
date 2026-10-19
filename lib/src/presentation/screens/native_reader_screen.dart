@@ -29,6 +29,8 @@ import '../state/library_controller.dart';
 import '../../core/constants/asset_constants.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme_controller.dart';
+import '../layout/adaptive_sheet.dart';
+import '../layout/reader_pane_layout.dart';
 import '../widgets/app_chrome.dart';
 import '../widgets/native_search_sheet.dart';
 import '../widgets/page_curl.dart';
@@ -124,6 +126,12 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
   bool _topVisible = false;
   bool _bottomVisible = false;
   bool get _controlsVisible => _topVisible || _bottomVisible;
+
+  /// Expanded windows (large tablets): panes and toolbar show unless the
+  /// reader tapped into focus mode; the floating bars and zoom-out stay off.
+  bool _focusMode = false;
+  bool _panes = false;
+  final _readerFocus = FocusNode(debugLabel: 'native-reader');
   Timer? _topHideTimer;
   Timer? _bottomHideTimer;
   Timer? _loadTimeoutTimer;
@@ -500,10 +508,18 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
 
   // --- controls ---------------------------------------------------------------------------------
 
-  void _toggleControls() => _setControls(!_controlsVisible);
+  void _toggleControls() {
+    if (_panes) {
+      setState(() => _focusMode = !_focusMode);
+      return;
+    }
+    _setControls(!_controlsVisible);
+  }
 
   void _setControls(bool visible) {
     if (!mounted) return;
+    // Expanded: the toolbar and panes replace the floating bars.
+    if (visible && _panes) return;
     setState(() {
       _topVisible = visible;
       _bottomVisible = visible;
@@ -585,6 +601,7 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
     _chapterScrollN.dispose();
     _stripController?.dispose();
     _scrollController?.dispose();
+    _readerFocus.dispose();
     super.dispose();
   }
 
@@ -1683,25 +1700,79 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
 
   // --- sheets -----------------------------------------------------------------------------------
 
+  void _onPreferencesChanged(ReaderPreferences newPrefs) {
+    final modeChanged = newPrefs.scrollMode != _preferences.scrollMode;
+    setState(() => _preferences = newPrefs);
+    _session.dispatchCommand(UpdatePreferencesCommand(newPrefs));
+    if (modeChanged) {
+      _scrollChapter = -1;
+      setState(() {});
+    } else {
+      _applyPreferencesLive(newPrefs);
+    }
+  }
+
+  /// Expanded: toolbar above the panes (back | title + % | actions).
+  Widget _buildToolbar(BuildContext context) {
+    return Container(
+      height: 64,
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      decoration: BoxDecoration(
+        color: AppColors.figmaReaderBackground,
+        border: Border(bottom: BorderSide(color: AppColors.dividerSubtle)),
+      ),
+      child: Row(
+        children: [
+          IconButton(
+            icon: const FigmaIcon(AssetConstants.iconBack, width: 9, height: 14),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.book.publication.metadata.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.dmSans(fontSize: 15, height: 21 / 15, color: AppColors.fg),
+                ),
+                Text(
+                  l10n.percentRead((_progress * 100).round()),
+                  maxLines: 1,
+                  style: GoogleFonts.dmSans(fontSize: 13, height: 20 / 13, color: AppColors.figmaTextFaint),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            tooltip: l10n.searchInBook,
+            icon: Icon(Icons.search_rounded, color: AppColors.fg, size: 22),
+            onPressed: _showSearchSheet,
+          ),
+          IconButton(
+            tooltip: l10n.bookmarkThisPage,
+            icon: Icon(Icons.bookmark_add_outlined, color: AppColors.fg, size: 22),
+            onPressed: _addBookmark,
+          ),
+          ReaderPaneToggles(color: AppColors.fg),
+          IconButton(icon: const _ReaderMenuGlyph(), onPressed: _showReaderMenu),
+        ],
+      ),
+    );
+  }
+
   void _showCustomizationSheet() {
     _exitZoom();
-    showModalBottomSheet(
+    showAdaptiveSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => SakuraCustomizationSheet(
         preferences: _preferences,
-        onChanged: (newPrefs) {
-          final modeChanged = newPrefs.scrollMode != _preferences.scrollMode;
-          setState(() => _preferences = newPrefs);
-          _session.dispatchCommand(UpdatePreferencesCommand(newPrefs));
-          if (modeChanged) {
-            _scrollChapter = -1;
-            setState(() {});
-          } else {
-            _applyPreferencesLive(newPrefs);
-          }
-        },
+        onChanged: _onPreferencesChanged,
         brightness: _brightness,
         onBrightnessChanged: (value) => setState(() => _brightness = value),
       ),
@@ -1721,7 +1792,7 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
   }
 
   void _showTocSheet() {
-    showModalBottomSheet(
+    showAdaptiveSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -1736,7 +1807,7 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
   void _showSearchSheet({String? initialQuery}) {
     final engine = _engine;
     if (engine == null) return;
-    showModalBottomSheet(
+    showAdaptiveSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -1752,9 +1823,14 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
 
   @override
   Widget build(BuildContext context) {
-    final scaffold = Scaffold(
-      backgroundColor: SakuraEpubMapper.pageColorFor(_theme),
-      body: Builder(
+    final panes = readerUsesPanes(context);
+    if (panes != _panes) {
+      _panes = panes;
+      // Into expanded: drop the floating bars (and their zoom-out).
+      if (panes && _controlsVisible) WidgetsBinding.instance.addPostFrameCallback((_) => _setControls(false));
+    }
+    final prefs = AppPreferences.instance;
+    final bookView = Builder(
         builder: (context) {
           if (_openError != null) return _buildLoadFailure(context, l10n.couldNotOpenBookFile(_openError!));
           final media = MediaQuery.of(context);
@@ -1896,10 +1972,45 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
             ],
           );
         },
+    );
+
+    final pageColor = SakuraEpubMapper.pageColorFor(_theme);
+    final scaffold = Scaffold(
+      backgroundColor: pageColor,
+      body: ListenableBuilder(
+        listenable: prefs,
+        builder: (context, _) => ReaderPaneLayout(
+          background: pageColor,
+          focusMode: _focusMode,
+          contentsOpen: prefs.readerContentsPaneOpen,
+          settingsOpen: prefs.readerSettingsPaneOpen,
+          topBar: SafeArea(bottom: false, child: _buildToolbar(context)),
+          contents: ReaderFocusReturn(
+            focusNode: _readerFocus,
+            child: SakuraTocSheet(
+              embedded: true,
+              chapters: _toc,
+              notes: _session.state.annotations,
+              onNavigateToHref: _navigateToHref,
+            ),
+          ),
+          settings: ReaderFocusReturn(
+            focusNode: _readerFocus,
+            child: SakuraCustomizationSheet(
+              embedded: true,
+              preferences: _preferences,
+              onChanged: _onPreferencesChanged,
+              brightness: _brightness,
+              onBrightnessChanged: (value) => setState(() => _brightness = value),
+            ),
+          ),
+          book: bookView,
+        ),
       ),
     );
 
     return Focus(
+      focusNode: _readerFocus,
       autofocus: true,
       onKeyEvent: (node, event) {
         if (event is! KeyDownEvent) return KeyEventResult.ignored;
