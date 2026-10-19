@@ -1,10 +1,15 @@
+# Dependency updates: once a month, one grouped PR per ecosystem (plus a
+# separate PR for each major version), so updates don't pile up.
 version: 2
 updates:
   - package-ecosystem: pub
     directory: /
     schedule:
-      interval: weekly
-    open-pull-requests-limit: 5
+      interval: monthly
+    open-pull-requests-limit: 3
+    groups:
+      dart-minor-and-patch:
+        update-types: [minor, patch]
     ignore:
       # 9.x needs a newer Flutter (TextTheme type change).
       - dependency-name: google_fonts
@@ -12,11 +17,15 @@ updates:
       # 0.15.7 removed Element.matches, which flutter_html 3.0.0 uses.
       - dependency-name: html
         versions: [">=0.15.7"]
+
   - package-ecosystem: gradle
     directory: /android
     schedule:
       interval: monthly
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 3
+    groups:
+      android-minor-and-patch:
+        update-types: [minor, patch]
     ignore:
       # Held back until the Android build moves off android.newDsl=false:
       # AGP 9.4 fails on the reader module's source-set setup, and
@@ -25,7 +34,15 @@ updates:
       - dependency-name: com.android.library
       - dependency-name: gradle-wrapper
       - dependency-name: androidx.core:*
+      # Kotlin 2.4 fails to compile the reader module (jspecify annotations
+      # inaccessible on the classpath).
+      - dependency-name: org.jetbrains.kotlin.android
+        versions: [">=2.4.0"]
+
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]
