@@ -51,6 +51,6 @@ dependencies {
     androidTestImplementation("androidx.test:runner:1.7.0")
     androidTestImplementation("androidx.test:rules:1.7.0")
     androidTestImplementation("androidx.appcompat:appcompat:1.8.0")
-    androidTestImplementation("androidx.fragment:fragment-ktx:1.9.0")
+    androidTestImplementation("androidx.fragment:fragment-ktx:1.9.1")
     androidTestImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0")
 }

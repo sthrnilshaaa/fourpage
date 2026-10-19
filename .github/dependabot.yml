@@ -9,6 +9,9 @@ updates:
       # 9.x needs a newer Flutter (TextTheme type change).
       - dependency-name: google_fonts
         versions: [">=9.0.0"]
+      # 0.15.7 removed Element.matches, which flutter_html 3.0.0 uses.
+      - dependency-name: html
+        versions: [">=0.15.7"]
   - package-ecosystem: gradle
     directory: /android
     schedule:
