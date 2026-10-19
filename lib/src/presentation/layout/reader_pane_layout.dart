@@ -118,3 +118,22 @@ class ReaderPaneToggles extends StatelessWidget {
     );
   }
 }
+
+/// Wraps a reader side pane so that after any click/tap in it, keyboard
+/// focus returns to the book ([focusNode]) - arrow keys and PageDown keep
+/// turning pages after choosing a chapter or changing a setting.
+class ReaderFocusReturn extends StatelessWidget {
+  final FocusNode focusNode;
+  final Widget child;
+
+  const ReaderFocusReturn({super.key, required this.focusNode, required this.child});
+
+  @override
+  Widget build(BuildContext context) => Listener(
+        behavior: HitTestBehavior.translucent,
+        onPointerUp: (_) => WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (focusNode.canRequestFocus) focusNode.requestFocus();
+        }),
+        child: child,
+      );
+}

@@ -32,6 +32,14 @@ class _ReaderCustomizationSheetState extends State<ReaderCustomizationSheet> {
     super.initState();
     _prefs = widget.preferences;
   }
+  /// In a side pane the reader can change preferences elsewhere (menu,
+  /// shortcuts); follow them.
+  @override
+  void didUpdateWidget(covariant ReaderCustomizationSheet oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!identical(widget.preferences, oldWidget.preferences)) _prefs = widget.preferences;
+  }
+
 
   void _update(ReaderPreferences newPrefs) {
     setState(() => _prefs = newPrefs);

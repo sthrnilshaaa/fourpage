@@ -65,6 +65,14 @@ class _SakuraCustomizationSheetState extends State<SakuraCustomizationSheet> {
     _prefs = widget.preferences;
     _brightness = widget.brightness;
   }
+  /// In a side pane the reader can change preferences elsewhere (menu,
+  /// shortcuts); follow them.
+  @override
+  void didUpdateWidget(covariant SakuraCustomizationSheet oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!identical(widget.preferences, oldWidget.preferences)) _prefs = widget.preferences;
+  }
+
 
   void _update(ReaderPreferences newPrefs) {
     setState(() => _prefs = newPrefs);
