@@ -12,6 +12,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_theme_controller.dart';
 import '../platform/app_haptics.dart';
 import '../platform/app_updater.dart';
+import '../platform/folder_tree.dart';
 import '../platform/system_bridge.dart';
 import '../state/shelves.dart';
 import '../widgets/shelf_dialogs.dart';
@@ -21,6 +22,7 @@ import '../state/usage_tracker.dart';
 import '../utils/book_import_actions.dart';
 import '../utils/library_sort.dart';
 import 'reading_stats_screen.dart';
+import '../utils/folder_scanner.dart';
 import '../utils/storage_access.dart';
 
 /// App settings: appearance, reading defaults for new books, library &
@@ -116,8 +118,14 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
   Future<void> _share() => SharePlus.instance.share(ShareParams(text: l10n.shareMessage(_storeUrl)));
 
   Future<void> _rescan(String folder) async {
-    if (!await StorageAccess.ensureFolderAccess(context)) return;
-    final count = await LibraryController.instance.scanAndImportFolder(folder);
+    if (!FolderTree.isTreeUri(folder) && !await StorageAccess.ensureFolderAccess(context)) return;
+    final int count;
+    try {
+      count = await LibraryController.instance.scanAndImportFolder(folder);
+    } on FolderScanPermissionException {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.thisFolderCanTBeRead)));
+      return;
+    }
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(count == 0 ? l10n.noEpubBooksFoundInThis : l10n.importedBooks(count))),
@@ -463,7 +471,8 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
   Widget _librarySection() {
     final lib = LibraryController.instance;
     final folders = lib.scannedFolders;
-    final isAndroid = !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+    // Play build: folders come from the system picker; no "All files access".
+    final isAndroid = !kIsWeb && defaultTargetPlatform == TargetPlatform.android && !FolderTree.isUsed;
     return _Section(
       title: l10n.libraryStorage,
       children: [
@@ -496,8 +505,8 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
         else
           for (final folder in folders)
             _Row(
-              label: folder.split(RegExp(r'[\\/]')).where((s) => s.isNotEmpty).lastOrNull ?? folder,
-              caption: folder,
+              label: folderSegments(folder).lastOrNull ?? folder,
+              caption: FolderTree.isTreeUri(folder) ? FolderTree.displayPath(folder) : folder,
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [

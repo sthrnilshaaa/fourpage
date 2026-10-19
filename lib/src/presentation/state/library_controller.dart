@@ -12,6 +12,7 @@ import '../utils/folder_scanner.dart';
 import 'app_preferences.dart';
 import 'shelves.dart';
 import '../platform/epub_unpacker.dart';
+import '../platform/folder_tree.dart';
 
 enum BookFormat { epub, pdf }
 
@@ -431,6 +432,7 @@ class LibraryController extends ChangeNotifier {
 
   /// Scans a folder recursively for supported documents and imports them.
   Future<int> scanAndImportFolder(String folderPath, {Function(int current, int total)? onProgress}) async {
+    if (FolderTree.isTreeUri(folderPath)) return _scanAndImportTree(folderPath, onProgress: onProgress);
     final files = await FolderScanner.findFiles(Directory(folderPath), importableExtensions);
     _scannedFolders.add(folderPath);
     await _persistFolderData();
@@ -446,6 +448,32 @@ class LibraryController extends ChangeNotifier {
         }
       } catch (e) {
         debugPrint('Error importing ${file.path}: $e');
+      }
+      onProgress?.call(i + 1, files.length);
+    }
+    notifyListeners();
+    return importedCount;
+  }
+
+  /// Play build: a folder picked with the system folder picker (tree URI).
+  Future<int> _scanAndImportTree(String treeUri, {Function(int current, int total)? onProgress}) async {
+    if (!await FolderTree.hasAccess(treeUri)) {
+      throw FolderScanPermissionException(FolderTree.displayPath(treeUri));
+    }
+    final files = await FolderTree.list(treeUri, importableExtensions);
+    _scannedFolders.add(treeUri);
+    await _persistFolderData();
+
+    var importedCount = 0;
+    for (var i = 0; i < files.length; i++) {
+      try {
+        final bytes = await FolderTree.read(files[i].uri);
+        if (bytes.isNotEmpty) {
+          await addDocument(fileName: files[i].name, bytes: bytes, folderPath: treeUri);
+          importedCount++;
+        }
+      } catch (e) {
+        debugPrint('Error importing ${files[i].name}: $e');
       }
       onProgress?.call(i + 1, files.length);
     }
@@ -491,6 +519,9 @@ class LibraryController extends ChangeNotifier {
   /// were copied into app storage on import); they just lose the folder tag.
   Future<void> removeScannedFolder(String folderPath) async {
     _scannedFolders.remove(folderPath);
+    if (FolderTree.isTreeUri(folderPath)) {
+      await FolderTree.release(folderPath).catchError((Object e) => debugPrint('Release folder: $e'));
+    }
     _bookFolderMap.removeWhere((_, folder) => folder == folderPath);
     await _persistFolderData();
     notifyListeners();

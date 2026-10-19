@@ -137,7 +137,13 @@ class AppUpdater {
 
   // --- GitHub -----------------------------------------------------------------
 
+  /// The Play build must never update itself outside Play. `appFlavor` is a
+  /// compile-time constant, so in that build the GitHub code below is
+  /// compiled out entirely.
+  static bool get _githubUpdatesAllowed => appFlavor != 'playstore';
+
   Future<AvailableUpdate?> _checkGithub(AppBuildInfo info) async {
+    if (!_githubUpdatesAllowed) return null;
     final client = HttpClient()..connectionTimeout = const Duration(seconds: 10);
     try {
       final request = await client.getUrl(Uri.parse(AppConstants.githubLatestReleaseApi));
@@ -224,6 +230,7 @@ class AppUpdater {
   /// installer through the FileProvider in src/github/AndroidManifest.xml).
   /// [onProgress] gets 0..1, or null while the size is unknown.
   Future<File> downloadApk(AvailableUpdate update, {void Function(double?)? onProgress}) async {
+    if (!_githubUpdatesAllowed) throw UnsupportedError('Play build updates through Google Play');
     final dir = Directory('${(await getTemporaryDirectory()).path}/updates');
     if (await dir.exists()) await dir.delete(recursive: true);
     await dir.create(recursive: true);
@@ -253,6 +260,7 @@ class AppUpdater {
   /// Opens the system installer. Returns false when the user first has to
   /// allow this app to install apps (their settings screen is opened).
   Future<bool> installApk(File apk) async {
+    if (!_githubUpdatesAllowed) return false;
     final result = await _channel.invokeMethod<String>('install', {'path': apk.path});
     if (result == 'needs_permission') {
       await _channel.invokeMethod<void>('openInstallSettings');

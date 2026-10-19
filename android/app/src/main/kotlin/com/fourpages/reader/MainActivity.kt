@@ -34,6 +34,7 @@ class MainActivity : FlutterActivity() {
 
     private var systemChannel: SystemChannel? = null
     private var appUpdater: AppUpdater? = null
+    private var flavorChannels: FlavorChannels? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -42,6 +43,7 @@ class MainActivity : FlutterActivity() {
         EpubUnpacker(flutterEngine.dartExecutor.binaryMessenger)
         NativeReaderChannel(applicationContext, flutterEngine.dartExecutor.binaryMessenger)
         appUpdater = AppUpdater(this, flutterEngine.dartExecutor.binaryMessenger)
+        flavorChannels = FlavorChannels(this, flutterEngine.dartExecutor.binaryMessenger)
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, channelName).setMethodCallHandler { call, result ->
             when (call.method) {
                 "hasAllFilesAccess" -> result.success(hasAllFilesAccess())
@@ -137,6 +139,7 @@ class MainActivity : FlutterActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (systemChannel?.onActivityResult(requestCode, resultCode, data) == true) return
         if (appUpdater?.onActivityResult(requestCode, resultCode) == true) return
+        if (flavorChannels?.onActivityResult(requestCode, resultCode, data) == true) return
         @Suppress("DEPRECATION")
         super.onActivityResult(requestCode, resultCode, data)
     }

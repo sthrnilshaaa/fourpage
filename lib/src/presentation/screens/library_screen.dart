@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../../l10n/l10n.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -7,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../core/constants/asset_constants.dart';
 import '../state/app_preferences.dart';
 import '../platform/app_haptics.dart';
+import '../platform/folder_tree.dart';
 import '../state/library_controller.dart';
 import '../state/shelves.dart';
 import '../utils/library_sort.dart';
@@ -169,7 +169,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
               children: [
                 Expanded(
                   child: Text(
-                    l10n.folderLabel(_folderFilter!.split(Platform.pathSeparator).where((s) => s.isNotEmpty).last),
+                    l10n.folderLabel(folderSegments(_folderFilter!).lastOrNull ?? _folderFilter!),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.sora(fontSize: 13, color: AppColors.accentLime, fontWeight: FontWeight.w600),
@@ -434,7 +434,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
       final epubCount = folderBooks.where((b) => b.format.toUpperCase() == 'EPUB').length;
       final otherCount = folderBooks.length - epubCount;
 
-      final parts = folder.split(Platform.pathSeparator).where((s) => s.isNotEmpty).toList();
+      final parts = folderSegments(folder);
       final displayPath = parts.length >= 2
           ? '${parts[parts.length - 2]}/${parts.last}'
           : (parts.isNotEmpty ? parts.last : folder);

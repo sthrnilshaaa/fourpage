@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import '../../../l10n/l10n.dart';
 
 import '../../data/importers/document_converter.dart';
+import '../platform/folder_tree.dart';
 import '../state/library_controller.dart';
 import '../theme/app_colors.dart';
 import 'folder_scanner.dart';
@@ -90,8 +91,14 @@ class BookImportActions {
   /// imports every supported document inside it.
   static Future<ImportOutcome> scanFolder(BuildContext context) async {
     final messenger = ScaffoldMessenger.of(context);
-    if (!await StorageAccess.ensureFolderAccess(context)) return const ImportOutcome(cancelled: true);
-    final folder = await FilePicker.getDirectoryPath();
+    final String? folder;
+    if (FolderTree.isUsed) {
+      // Play build: the system folder picker grants access to this folder.
+      folder = await FolderTree.pick();
+    } else {
+      if (!await StorageAccess.ensureFolderAccess(context)) return const ImportOutcome(cancelled: true);
+      folder = await FilePicker.getDirectoryPath();
+    }
     if (folder == null || folder.isEmpty) return const ImportOutcome(cancelled: true);
     try {
       final count = await LibraryController.instance.scanAndImportFolder(folder);

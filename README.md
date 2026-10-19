@@ -55,7 +55,7 @@
 - Reading stats, break reminders and a daily reading reminder.
 - Home-screen widget to continue reading.
 - Built-in **guide** to every feature (Settings › i).
-- **Private by design**: books, notes and progress never leave your phone.
+- **Private by design**: books, notes and progress never leave your phone. See the [privacy policy](PRIVACY.md).
 
 ## Download
 
