@@ -31,6 +31,8 @@ class AppPreferences extends ChangeNotifier {
   static const keyReaderPadding = 'reader_padding';
   static const keyReaderThemeChosen = 'reader_theme_chosen';
   static const keyDynamicBookBackground = 'dynamic_book_background';
+  static const keyReaderContentsPane = 'reader_contents_pane';
+  static const keyReaderSettingsPane = 'reader_settings_pane';
 
   /// Range of the Settings "Page margins" slider, in logical pixels per side.
   static const double minReaderPadding = 0;
@@ -45,6 +47,8 @@ class AppPreferences extends ChangeNotifier {
   // follow the app theme (see readerDefaults).
   bool _readerThemeChosen = false;
   bool _dynamicBookBackground = false;
+  bool _readerContentsPaneOpen = true;
+  bool _readerSettingsPaneOpen = true;
   double _readerPadding = UIConstants.readerTextPadding;
   bool _loaded = false;
   bool _hapticsEnabled = true;
@@ -99,6 +103,22 @@ class AppPreferences extends ChangeNotifier {
     await _save(() => _repo.setBool(keyDynamicBookBackground, value));
   }
 
+  /// Reader side panes on expanded windows (contents / reading settings).
+  bool get readerContentsPaneOpen => _readerContentsPaneOpen;
+  bool get readerSettingsPaneOpen => _readerSettingsPaneOpen;
+
+  Future<void> setReaderContentsPaneOpen(bool value) async {
+    _readerContentsPaneOpen = value;
+    notifyListeners();
+    await _save(() => _repo.setBool(keyReaderContentsPane, value));
+  }
+
+  Future<void> setReaderSettingsPaneOpen(bool value) async {
+    _readerSettingsPaneOpen = value;
+    notifyListeners();
+    await _save(() => _repo.setBool(keyReaderSettingsPane, value));
+  }
+
   /// Left and right padding around the book text, for every book.
   double get readerPadding => _readerPadding;
 
@@ -119,6 +139,8 @@ class AppPreferences extends ChangeNotifier {
       _language = await _repo.getString(keyLanguage) ?? 'en';
       _readerThemeChosen = await _repo.getBool(keyReaderThemeChosen, defaultValue: false);
       _dynamicBookBackground = await _repo.getBool(keyDynamicBookBackground, defaultValue: false);
+      _readerContentsPaneOpen = await _repo.getBool(keyReaderContentsPane, defaultValue: true);
+      _readerSettingsPaneOpen = await _repo.getBool(keyReaderSettingsPane, defaultValue: true);
       _readerPadding = (double.tryParse(await _repo.getString(keyReaderPadding) ?? '') ?? _readerPadding)
           .clamp(minReaderPadding, maxReaderPadding);
       final json = await _repo.getString(keyReaderDefaults);
