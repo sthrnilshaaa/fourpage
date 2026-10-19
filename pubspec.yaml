@@ -37,7 +37,7 @@ dependencies:
   sqflite_common_ffi: ^2.3.2
   file_picker: ^12.0.0
   epubx: ^4.0.0
-  html: ^0.15.4
+  html: ^0.15.7
   flutter_html: ^3.0.0-beta.2
   scrollable_positioned_list: ^0.3.8
   collection: ^1.17.1
