@@ -26,7 +26,7 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   intl: ^0.20.3
-  cupertino_icons: ^1.0.8
+  cupertino_icons: ^2.0.0
   google_fonts: ^8.2.1
   archive: ^3.6.1
   xml: ^6.5.0
