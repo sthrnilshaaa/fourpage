@@ -18,8 +18,6 @@ SWAPPED=(
   third_party/sakura_epub-0.1.3-aread/pubspec.yaml
 )
 NOT_FOR_GITHUB=(Bookerly.ttf)
-# Must never appear in a GitHub APK.
-BANNED='Bookerly|Amazon-Ember|NewYork|Gilroy'
 
 STASH=$(mktemp -d)
 restore() {
@@ -48,13 +46,17 @@ rm -f build/app/outputs/flutter-apk/app-*github-release.apk*
 
 flutter build apk --release --flavor github --split-per-abi "$@"
 
-# Check every GitHub APK before calling it done.
+# Check every GitHub APK: each bundled reader font must be one the public
+# pubspec declares (those are all freely licensed).
+allowed=$(git show ":${SWAPPED[1]}" | sed -nE 's#.*asset: (lib/assets/fonts/[^ ]+).*#\1#p')
 status=0
 for apk in build/app/outputs/flutter-apk/app-*github-release.apk; do
-  if unzip -l "$apk" | grep -E "$BANNED"; then
-    echo "ERROR: $apk contains a font that must not be published." >&2
-    status=1
-  fi
+  while read -r font; do
+    if ! grep -qxF "$font" <<<"$allowed"; then
+      echo "ERROR: $apk contains $font, which is not in the public font list." >&2
+      status=1
+    fi
+  done < <(unzip -Z1 "$apk" | sed -nE 's#^assets/flutter_assets/packages/sakura_epub/(lib/assets/fonts/.+)#\1#p')
 done
 [[ $status -eq 0 ]] && echo "OK: GitHub APKs contain only freely licensed fonts."
 exit $status

@@ -6,6 +6,10 @@ All notable changes to Fourpages. The format follows
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-10-19
+
+First release.
+
 ### Added
 - Shelves: create, rename, delete and reorder shelves; long-press a book and
   drag it between shelves; add books to a shelf from a checklist.
@@ -16,5 +20,8 @@ All notable changes to Fourpages. The format follows
   migration, highlights, notes, search and a scrolled mode.
 - PDF reader with pinch zoom; TXT, Markdown, HTML and DOCX import.
 - Reading reminders, haptics, reading stats, home-screen widget.
+- Reader fonts: Literata, Lora, Source Serif, Atkinson Hyperlegible and
+  IBM Plex Sans (all freely licensed).
 
-[Unreleased]: https://github.com/sthrnilshaaa/fourpages/commits/main
+[Unreleased]: https://github.com/sthrnilshaaa/fourpages/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/sthrnilshaaa/fourpages/releases/tag/v1.0.0

@@ -79,7 +79,7 @@ class _SakuraCustomizationSheetState extends State<SakuraCustomizationSheet> {
     widget.onChanged(newPrefs);
   }
 
-  // The engine falls back to Bookerly for families it doesn't bundle (e.g.
+  // The engine falls back to its default font for families it doesn't bundle (e.g.
   // the app-wide 'Merriweather' default), so highlight what's really shown.
   String get _activeFont => SakuraFonts.byFamily(_prefs.fontFamily).flutterFontFamily;
 
