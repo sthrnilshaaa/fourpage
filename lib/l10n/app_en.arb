@@ -741,5 +741,13 @@
   "bookInfoFileSize": "File size",
   "bookInfoShelf": "Shelf",
   "bookInfoSubjects": "Subjects",
-  "bookInfoDescription": "Description"
+  "bookInfoDescription": "Description",
+  "pagesLeftShort": "{count, plural, =1{1 left} other{{count} left}}",
+  "@pagesLeftShort": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  }
 }

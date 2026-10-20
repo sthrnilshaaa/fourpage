@@ -2343,6 +2343,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Description'**
   String get bookInfoDescription;
+
+  /// No description provided for @pagesLeftShort.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 left} other{{count} left}}'**
+  String pagesLeftShort(int count);
 }
 
 class _AppLocalizationsDelegate

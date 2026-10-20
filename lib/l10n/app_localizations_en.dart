@@ -1,6 +1,5 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
-
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -1352,4 +1351,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get bookInfoDescription => 'Description';
+
+  @override
+  String pagesLeftShort(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count left',
+      one: '1 left',
+    );
+    return '$_temp0';
+  }
 }

@@ -185,6 +185,8 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
   PageController? _stripController;
   static const _zoomDuration = Duration(milliseconds: 260);
   Map<String, dynamic>? _chapterInfo;
+  // Chapter (resource index) [_chapterInfo] was last fetched for.
+  int _chapterInfoFor = -1;
   final _chapterDragN = ValueNotifier<double>(0);
   static const double _chapterDragCommit = 70;
   final Set<int> _stripPending = {};
@@ -456,6 +458,10 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
       if (_locationsReady) _progress = loc.totalProgression;
       _pagesLeft = loc.pagesLeft ?? -1;
     });
+    if (p.resourceIndex != _chapterInfoFor) {
+      _chapterInfoFor = p.resourceIndex;
+      _refreshChapterInfo();
+    }
     if (save) {
       _positionSaveDebounce?.cancel();
       _positionSaveDebounce = Timer(const Duration(milliseconds: 600), () => _savePosition(loc));
@@ -2146,11 +2152,11 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
     final pad = AppPreferences.instance.readerPadding.clamp(12.0, 48.0);
     final showPages = _paginated && _pagesLeft >= 0;
     // While the progress bar shows, the line moves up above it instead of
-    // hiding behind it (bar: 24 from the bottom, 52 tall).
+    // hiding behind it (bar: 24 from the bottom, [_barHeight] tall).
     final lifted = _bottomVisible && _epubReady;
     // The strip under the page grows (in the page colour) so the line sits
     // above the bar; it shrinks back when the bar hides.
-    final textBottom = lifted ? math.max(insetBottom, 24.0 + 52 + 6) : insetBottom;
+    final textBottom = lifted ? math.max(insetBottom, 24.0 + _barHeight + 6) : insetBottom;
     return AnimatedPositioned(
       duration: _chromeDuration,
       curve: Curves.easeOutCubic,
@@ -2633,10 +2639,58 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
     }
   }
 
+  /// Height of the footer pill (see [_buildBottomBar]).
+  static const double _barHeight = 84;
+
+  /// Previous (-1) or next (1) chapter from the footer's arrow buttons.
+  Future<void> _jumpChapter(int dir) async {
+    final engine = _engine;
+    final page = _page;
+    if (engine == null || page == null) return;
+    _onUserActivity();
+    AppHaptics.tick();
+    if (_zoomed) {
+      _goChapterInZoom(dir);
+      return;
+    }
+    final entry = _chapterInfo?[dir > 0 ? 'next' : 'prev'];
+    final href = entry is Map ? entry['href'] as String? : null;
+    if (href != null) {
+      await _goTo(engine.atHref(href));
+    } else {
+      final target = page.resourceIndex + dir;
+      if (target < 0 || target >= engine.chapterCount) return;
+      await _goTo(engine.at(target, 0));
+    }
+    _refreshChapterInfo();
+  }
+
+  /// The footer pill: chapter name and pages left on top; chapter arrows,
+  /// the seek bar and the percentage below. Tapping the top row (or any
+  /// spot that isn't a control) opens Chapters & Notes.
   Widget _buildBottomBar(BuildContext context) {
     final shown = (_seekPreview ?? _progress).clamp(0.0, 1.0);
-    // The bar itself seeks (tap or drag); anywhere else on the pill - the
-    // percentage, the padding - opens Chapters & Notes, as it always did.
+    final chapter = _chapterTitle('current') ?? widget.book.publication.metadata.title;
+    final hasPrev = _chapterTitle('prev') != null || (_page?.resourceIndex ?? 0) > 0;
+    final engine = _engine;
+    final hasNext = _chapterTitle('next') != null ||
+        (engine != null && _page != null && _page!.resourceIndex < engine.chapterCount - 1);
+    final faint = GoogleFonts.sora(fontSize: 11.5, color: AppColors.textFaint);
+
+    Widget arrow(IconData icon, String tip, bool enabled, int dir) => SizedBox(
+          width: 34,
+          height: 42,
+          child: IconButton(
+            padding: EdgeInsets.zero,
+            tooltip: tip,
+            iconSize: 22,
+            onPressed: enabled ? () => _jumpChapter(dir) : null,
+            color: AppColors.fg.withValues(alpha: 0.8),
+            disabledColor: AppColors.fg.withValues(alpha: 0.2),
+            icon: Icon(icon),
+          ),
+        );
+
     return Positioned(
       bottom: 24,
       left: 16,
@@ -2644,39 +2698,76 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: _showTocSheet,
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(8, 4, 20, 4),
-          decoration: BoxDecoration(
-            color: AppColors.pillSurface,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: AppColors.fg.withValues(alpha: 0.1)),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: _ProgressScrubber(
-                  value: shown,
-                  enabled: _locationsReady,
-                  onChanged: (v) {
-                    _onUserActivity();
-                    setState(() => _seekPreview = v);
-                  },
-                  onChangeEnd: _seekTo,
-                ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(22),
+          child: BackdropFilter(
+            filter: ui.ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+            child: Container(
+              height: _barHeight,
+              padding: const EdgeInsets.fromLTRB(6, 10, 6, 2),
+              decoration: BoxDecoration(
+                color: AppColors.pillSurface.withValues(alpha: 0.88),
+                borderRadius: BorderRadius.circular(22),
+                border: Border.all(color: AppColors.fg.withValues(alpha: 0.1)),
+                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.25), blurRadius: 18, offset: const Offset(0, 6))],
               ),
-              const SizedBox(width: 8),
-              SizedBox(
-                width: 40,
-                child: Text(
-                  '${(shown * 100).round()}%',
-                  textAlign: TextAlign.right,
-                  style: GoogleFonts.sora(
-                    fontSize: 13,
-                    color: _seekPreview != null ? AppColors.fg : AppColors.textFaint,
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Row(
+                      children: [
+                        Icon(Icons.toc_rounded, size: 15, color: AppColors.textFaint),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            chapter,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.sora(fontSize: 12.5, fontWeight: FontWeight.w600, color: AppColors.fg),
+                          ),
+                        ),
+                        if (_paginated && _pagesLeft >= 0) ...[
+                          const SizedBox(width: 10),
+                          Text(l10n.pagesLeftShort(_pagesLeft), style: faint),
+                        ],
+                      ],
+                    ),
                   ),
-                ),
+                  Expanded(
+                    child: Row(
+                      children: [
+                        arrow(Icons.chevron_left_rounded, l10n.previousChapter, hasPrev, -1),
+                        Expanded(
+                          child: _ProgressScrubber(
+                            value: shown,
+                            enabled: _locationsReady,
+                            onChanged: (v) {
+                              _onUserActivity();
+                              setState(() => _seekPreview = v);
+                            },
+                            onChangeEnd: _seekTo,
+                          ),
+                        ),
+                        SizedBox(
+                          width: 40,
+                          child: Text(
+                            '${(shown * 100).round()}%',
+                            textAlign: TextAlign.right,
+                            style: GoogleFonts.sora(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: _seekPreview != null ? AppColors.accentLime : AppColors.fg,
+                            ),
+                          ),
+                        ),
+                        arrow(Icons.chevron_right_rounded, l10n.nextChapter, hasNext, 1),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),

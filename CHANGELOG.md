@@ -6,6 +6,23 @@ All notable changes to Fourpages. The format follows
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-10-20
+
+### Added
+- Book menu: long-press (or right-click) any book for Open, About this book,
+  Move to shelf, Share book file and Remove from library.
+- Large screens and tablets: cover grid with a details pane, settings with a
+  detail pane, a three-pane reader with a two-page spread, and two PDF pages
+  per row.
+
+### Changed
+- Reader footer: a new info pill with the chapter name, pages left,
+  previous/next chapter buttons, the seek bar and the percentage.
+
+### Fixed
+- Removing a book now also deletes its progress, highlights, bookmarks,
+  settings and cached files.
+
 ## [1.0.0] - 2026-10-19
 
 First release.
@@ -23,5 +40,6 @@ First release.
 - Reader fonts: Literata, Lora, Source Serif, Atkinson Hyperlegible and
   IBM Plex Sans (all freely licensed).
 
-[Unreleased]: https://github.com/sthrnilshaaa/fourpages/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/sthrnilshaaa/fourpages/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/sthrnilshaaa/fourpages/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/sthrnilshaaa/fourpages/releases/tag/v1.0.0
