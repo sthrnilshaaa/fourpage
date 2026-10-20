@@ -96,6 +96,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                   key: ValueKey(recent[index].publication.id),
                                   book: recent[index],
                                   onTap: () => _openReader(context, recent[index]),
+                                  onLongPress: () => showBookActions(context, recent[index],
+                                      onOpen: () => _openReader(context, recent[index])),
                                 ),
                               ),
                             ),
@@ -117,13 +119,17 @@ class _HomeScreenState extends State<HomeScreen> {
                               selected: details,
                               onOpen: (b) => _openReader(context, b),
                               onSelect: windowClass.isExpanded ? (b) => setState(() => _selected = b) : null,
-                              onSecondary: (b, _) => showMoveToShelfSheet(context, b),
+                              onSecondary: (b, _) => showBookActions(context, b, onOpen: () => _openReader(context, b)),
                             )
                           else
                           for (final book in books)
                             Padding(
                               padding: const EdgeInsets.fromLTRB(21, 0, 22, 20),
-                              child: _HomeBookRow(book: book, onTap: () => _openReader(context, book)),
+                              child: _HomeBookRow(
+                                book: book,
+                                onTap: () => _openReader(context, book),
+                                onLongPress: () => showBookActions(context, book, onOpen: () => _openReader(context, book)),
+                              ),
                             ),
                         ],
                       ),
@@ -261,14 +267,16 @@ class _SectionHeader extends StatelessWidget {
 class _RecentBookCard extends StatelessWidget {
   final BookItem book;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
 
-  const _RecentBookCard({super.key, required this.book, required this.onTap});
+  const _RecentBookCard({super.key, required this.book, required this.onTap, this.onLongPress});
 
   @override
   Widget build(BuildContext context) {
     final progress = _HomeScreenState._progressOf(book);
     return GestureDetector(
       onTap: onTap,
+      onLongPress: onLongPress,
       child: SizedBox(
         width: 121,
         child: Column(
@@ -311,8 +319,9 @@ class _RecentBookCard extends StatelessWidget {
 class _HomeBookRow extends StatelessWidget {
   final BookItem book;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
 
-  const _HomeBookRow({required this.book, required this.onTap});
+  const _HomeBookRow({required this.book, required this.onTap, this.onLongPress});
 
   @override
   Widget build(BuildContext context) {
@@ -320,6 +329,7 @@ class _HomeBookRow extends StatelessWidget {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
+      onLongPress: onLongPress,
       child: SizedBox(
         height: 114,
         child: Row(

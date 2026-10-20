@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -1302,4 +1303,53 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notOnAShelf => 'Not on a shelf';
+
+  @override
+  String get aboutThisBook => 'About this book';
+
+  @override
+  String get shareBookFile => 'Share book file';
+
+  @override
+  String get couldNotShareBook => 'Couldn\'t share this book';
+
+  @override
+  String get removeFromLibrary => 'Remove from library';
+
+  @override
+  String removeFromLibraryBody(String title) {
+    return '“$title” will be removed with its reading progress, highlights and bookmarks. The original file on your device is not deleted.';
+  }
+
+  @override
+  String get remove => 'Remove';
+
+  @override
+  String removedFromLibrary(String title) {
+    return 'Removed “$title”';
+  }
+
+  @override
+  String get bookInfoPublisher => 'Publisher';
+
+  @override
+  String get bookInfoPublished => 'Published';
+
+  @override
+  String get bookInfoLanguage => 'Language';
+
+  @override
+  String get bookInfoFormat => 'Format';
+
+  @override
+  String get bookInfoFileSize => 'File size';
+
+  @override
+  String get bookInfoShelf => 'Shelf';
+
+  @override
+  String get bookInfoSubjects => 'Subjects';
+
+  @override
+  String get bookInfoDescription => 'Description';
 }

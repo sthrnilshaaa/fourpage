@@ -221,7 +221,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                   : null,
               onOpen: _openReader,
               onSelect: context.windowClass.isExpanded ? (b) => setState(() => _selected = b) : null,
-              onSecondary: (b, _) => showMoveToShelfSheet(context, b),
+              onSecondary: (b, _) => showBookActions(context, b, onOpen: () => _openReader(b)),
             ),
           )
         else
@@ -244,7 +244,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                 format: book.format,
                 progress: book.progress,
                 onTap: () => _openReader(book),
-                onLongPress: () => showMoveToShelfSheet(context, book),
+                onLongPress: () => showBookActions(context, book, onOpen: () => _openReader(book)),
               );
             },
           ),
@@ -859,7 +859,7 @@ class ShelfBooksScreen extends StatelessWidget {
                       format: book.format,
                       progress: book.progress,
                       onTap: () => onOpenBook(book),
-                      onLongPress: () => showBookShelfActions(context, book, onOpen: () => onOpenBook(book)),
+                      onLongPress: () => showBookActions(context, book, onOpen: () => onOpenBook(book)),
                     );
                   },
                 ),

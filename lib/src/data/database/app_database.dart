@@ -218,6 +218,19 @@ class AppDatabase {
     }
   }
 
+  /// Removes what is recorded about one book (progress, highlights,
+  /// bookmarks, its settings). Foreign keys are off, so ON DELETE CASCADE
+  /// never runs. Usage history is kept so stats stay complete.
+  Future<void> clearBookData(String publicationId) async {
+    final db = await database;
+    await db.transaction((txn) async {
+      for (final table in const ['annotations', 'bookmarks', 'reading_progress', 'reader_preferences']) {
+        await txn.delete(table, where: 'publication_id = ?', whereArgs: [publicationId]);
+      }
+    });
+    notifyChange('annotations');
+  }
+
   /// Settings → Reset: removes every book and everything recorded about them
   /// (progress, highlights, bookmarks, per-book settings, usage history).
   /// App-wide settings (theme, language, reminders) are kept.

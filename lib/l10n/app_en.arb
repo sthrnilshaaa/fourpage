@@ -712,5 +712,34 @@
   "hideContents": "Hide contents",
   "showSettingsPane": "Show settings",
   "hideSettingsPane": "Hide settings",
-  "notOnAShelf": "Not on a shelf"
+  "notOnAShelf": "Not on a shelf",
+  "aboutThisBook": "About this book",
+  "shareBookFile": "Share book file",
+  "couldNotShareBook": "Couldn't share this book",
+  "removeFromLibrary": "Remove from library",
+  "removeFromLibraryBody": "“{title}” will be removed with its reading progress, highlights and bookmarks. The original file on your device is not deleted.",
+  "@removeFromLibraryBody": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "remove": "Remove",
+  "removedFromLibrary": "Removed “{title}”",
+  "@removedFromLibrary": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "bookInfoPublisher": "Publisher",
+  "bookInfoPublished": "Published",
+  "bookInfoLanguage": "Language",
+  "bookInfoFormat": "Format",
+  "bookInfoFileSize": "File size",
+  "bookInfoShelf": "Shelf",
+  "bookInfoSubjects": "Subjects",
+  "bookInfoDescription": "Description"
 }

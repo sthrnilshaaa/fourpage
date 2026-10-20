@@ -554,23 +554,34 @@ class LibraryController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Removes a book from the library: its file, cached data, progress,
+  /// highlights and bookmarks. The original file the user imported from is
+  /// not touched.
   Future<void> deleteBook(String publicationId) async {
     await _repository.deletePublication(publicationId);
+    await AppDatabase.instance.clearBookData(publicationId).catchError((Object e) => debugPrint('Delete book data: $e'));
     await EpubUnpacker.remove(publicationId);
     _books.removeWhere((b) => b.publication.id == publicationId);
     _bookFolderMap.remove(publicationId);
     _persistFolderData();
     _shelves.forgetBook(publicationId);
     _shelvesChanged();
+    if (_lastOpened.remove(publicationId) != null) {
+      _settingsRepo
+          .setString(_keyLastOpened, jsonEncode(_lastOpened.map((k, v) => MapEntry(k, v.toIso8601String()))))
+          .catchError((Object e) => debugPrint('Could not save last opened: $e'));
+    }
     if (_activeBook?.publication.id == publicationId) _activeBook = null;
-    for (final kind in BookFormat.values) {
-      try {
-        final file = await getBookFile(publicationId, kind: kind);
-        if (await file.exists()) await file.delete();
-        // Saved page-count data for this book (see SakuraReaderScreen).
-        final locations = File('${file.path}.locations.json');
-        if (await locations.exists()) await locations.delete();
-      } catch (_) {}
+    // The book file and everything cached beside it (`<id>.epub`,
+    // `<id>.epub.locations.json`, saved page pictures, ...).
+    try {
+      final dir = await _booksDir();
+      await for (final entity in dir.list()) {
+        final name = entity.uri.pathSegments.lastWhere((s) => s.isNotEmpty, orElse: () => '');
+        if (name.startsWith('$publicationId.')) await entity.delete(recursive: true);
+      }
+    } catch (e) {
+      debugPrint('Delete book files: $e');
     }
     notifyListeners();
     OfflineSyncManager.instance.syncNow();

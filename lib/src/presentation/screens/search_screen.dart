@@ -9,6 +9,7 @@ import '../layout/browse_insets.dart';
 import '../layout/window_class.dart';
 import '../theme/app_colors.dart';
 import '../utils/reader_launcher.dart';
+import '../widgets/shelf_dialogs.dart';
 import '../widgets/add_book_dialog.dart';
 import '../widgets/app_chrome.dart';
 import '../widgets/book_cover_widget.dart';
@@ -159,6 +160,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         books: matchingBooks,
                         padding: const EdgeInsets.fromLTRB(20, 0, 23, 24),
                         onOpen: _openReader,
+                        onSecondary: (b, _) => showBookActions(context, b, onOpen: () => _openReader(b)),
                       )
                     : ListView.separated(
                         padding: EdgeInsets.fromLTRB(20, 0, 23, browseBottomPadding(context, compact: 140)),
@@ -187,6 +189,7 @@ class _SearchScreenState extends State<SearchScreen> {
                               filled: false,
                             ),
                             onTap: () => _openReader(book),
+                            onLongPress: () => showBookActions(context, book, onOpen: () => _openReader(book)),
                           );
                         },
                       ),

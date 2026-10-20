@@ -10,6 +10,7 @@ import '../state/library_controller.dart';
 import '../state/shelves.dart';
 import '../layout/adaptive_sheet.dart';
 import '../theme/app_colors.dart';
+import 'book_actions.dart';
 import 'book_cover_widget.dart';
 
 LibraryController get _lib => LibraryController.instance;
@@ -130,27 +131,37 @@ Future<void> showMoveToShelfSheet(BuildContext context, BookItem book) async {
   }
 }
 
-/// Long-press menu on a book inside a shelf view.
-Future<void> showBookShelfActions(BuildContext context, BookItem book, {required VoidCallback onOpen}) async {
+/// Long-press (or right-click) menu on any book: open, details, shelf,
+/// share and remove from library.
+Future<void> showBookActions(BuildContext context, BookItem book, {required VoidCallback onOpen}) async {
   final current = _lib.shelfOf(book);
   final action = await _showSheet<String>(
     context,
     title: book.publication.metadata.title,
     children: (pop) => [
       _sheetTile(Icons.menu_book_rounded, l10n.openBook, () => pop('open')),
+      _sheetTile(Icons.info_outline_rounded, l10n.aboutThisBook, () => pop('info')),
       _sheetTile(Icons.drive_file_move_outline, l10n.moveToShelf, () => pop('move')),
-      if (current != null) _sheetTile(Icons.remove_circle_outline_rounded, l10n.removeFromShelf, () => pop('remove')),
+      if (current != null) _sheetTile(Icons.remove_circle_outline_rounded, l10n.removeFromShelf, () => pop('unshelve')),
+      _sheetTile(Icons.ios_share_rounded, l10n.shareBookFile, () => pop('share')),
+      _sheetTile(Icons.delete_outline_rounded, l10n.removeFromLibrary, () => pop('delete'), danger: true),
     ],
   );
   if (!context.mounted) return;
   switch (action) {
     case 'open':
       onOpen();
+    case 'info':
+      await showBookInfoSheet(context, book);
     case 'move':
       await showMoveToShelfSheet(context, book);
-    case 'remove':
+    case 'unshelve':
       _lib.moveBookToShelf(book, null);
       _snack(context, l10n.removedFromShelf(current!.name));
+    case 'share':
+      await shareBookFile(context, book);
+    case 'delete':
+      await confirmRemoveBook(context, book);
   }
 }
 

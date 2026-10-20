@@ -2253,6 +2253,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Not on a shelf'**
   String get notOnAShelf;
+
+  /// No description provided for @aboutThisBook.
+  ///
+  /// In en, this message translates to:
+  /// **'About this book'**
+  String get aboutThisBook;
+
+  /// No description provided for @shareBookFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Share book file'**
+  String get shareBookFile;
+
+  /// No description provided for @couldNotShareBook.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t share this book'**
+  String get couldNotShareBook;
+
+  /// No description provided for @removeFromLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from library'**
+  String get removeFromLibrary;
+
+  /// No description provided for @removeFromLibraryBody.
+  ///
+  /// In en, this message translates to:
+  /// **'“{title}” will be removed with its reading progress, highlights and bookmarks. The original file on your device is not deleted.'**
+  String removeFromLibraryBody(String title);
+
+  /// No description provided for @remove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get remove;
+
+  /// No description provided for @removedFromLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed “{title}”'**
+  String removedFromLibrary(String title);
+
+  /// No description provided for @bookInfoPublisher.
+  ///
+  /// In en, this message translates to:
+  /// **'Publisher'**
+  String get bookInfoPublisher;
+
+  /// No description provided for @bookInfoPublished.
+  ///
+  /// In en, this message translates to:
+  /// **'Published'**
+  String get bookInfoPublished;
+
+  /// No description provided for @bookInfoLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get bookInfoLanguage;
+
+  /// No description provided for @bookInfoFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Format'**
+  String get bookInfoFormat;
+
+  /// No description provided for @bookInfoFileSize.
+  ///
+  /// In en, this message translates to:
+  /// **'File size'**
+  String get bookInfoFileSize;
+
+  /// No description provided for @bookInfoShelf.
+  ///
+  /// In en, this message translates to:
+  /// **'Shelf'**
+  String get bookInfoShelf;
+
+  /// No description provided for @bookInfoSubjects.
+  ///
+  /// In en, this message translates to:
+  /// **'Subjects'**
+  String get bookInfoSubjects;
+
+  /// No description provided for @bookInfoDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get bookInfoDescription;
 }
 
 class _AppLocalizationsDelegate
