@@ -256,11 +256,11 @@ abstract class AppLocalizations {
   /// **'Import Your '**
   String get importYour;
 
-  /// No description provided for @fourpagesSupportsEpubBooks.
+  /// No description provided for @fourpageSupportsEpubBooks.
   ///
   /// In en, this message translates to:
-  /// **'Fourpages supports EPUB books.'**
-  String get fourpagesSupportsEpubBooks;
+  /// **'Fourpage supports EPUB books.'**
+  String get fourpageSupportsEpubBooks;
 
   /// No description provided for @books.
   ///
@@ -406,11 +406,11 @@ abstract class AppLocalizations {
   /// **'Other'**
   String get other;
 
-  /// No description provided for @fourpagesImported.
+  /// No description provided for @fourpageImported.
   ///
   /// In en, this message translates to:
-  /// **'Fourpages/Imported'**
-  String get fourpagesImported;
+  /// **'Fourpage/Imported'**
+  String get fourpageImported;
 
   /// No description provided for @home.
   ///
@@ -1159,7 +1159,7 @@ abstract class AppLocalizations {
   /// No description provided for @allFilesAccessExplanation.
   ///
   /// In en, this message translates to:
-  /// **'Android hides EPUB files in folders from apps by default. To find the books inside a folder, Fourpages needs \"All files access\".\n\nTurn it on for Fourpages on the next screen, then come back.'**
+  /// **'Android hides EPUB files in folders from apps by default. To find the books inside a folder, Fourpage needs \"All files access\".\n\nTurn it on for Fourpage on the next screen, then come back.'**
   String get allFilesAccessExplanation;
 
   /// No description provided for @importErrorLegacyDoc.
@@ -1345,7 +1345,7 @@ abstract class AppLocalizations {
   /// No description provided for @notificationsBlocked.
   ///
   /// In en, this message translates to:
-  /// **'Notifications are turned off for Fourpages. Allow them in system settings.'**
+  /// **'Notifications are turned off for Fourpage. Allow them in system settings.'**
   String get notificationsBlocked;
 
   /// No description provided for @haptics.
@@ -1420,17 +1420,17 @@ abstract class AppLocalizations {
   /// **'Reading stats'**
   String get readingStats;
 
-  /// No description provided for @rateFourpages.
+  /// No description provided for @rateFourpage.
   ///
   /// In en, this message translates to:
-  /// **'Rate Fourpages'**
-  String get rateFourpages;
+  /// **'Rate Fourpage'**
+  String get rateFourpage;
 
-  /// No description provided for @shareFourpages.
+  /// No description provided for @shareFourpage.
   ///
   /// In en, this message translates to:
-  /// **'Share Fourpages'**
-  String get shareFourpages;
+  /// **'Share Fourpage'**
+  String get shareFourpage;
 
   /// No description provided for @supportTheProject.
   ///
@@ -1441,7 +1441,7 @@ abstract class AppLocalizations {
   /// No description provided for @supportTheProjectCaption.
   ///
   /// In en, this message translates to:
-  /// **'Fourpages is free, offline and has no ads. Rating it or sharing it with a friend keeps it going.'**
+  /// **'Fourpage is free, offline and has no ads. Rating it or sharing it with a friend keeps it going.'**
   String get supportTheProjectCaption;
 
   /// No description provided for @storeUnavailable.
@@ -1453,7 +1453,7 @@ abstract class AppLocalizations {
   /// No description provided for @shareMessage.
   ///
   /// In en, this message translates to:
-  /// **'I\'m reading with Fourpages, a free offline book reader: {url}'**
+  /// **'I\'m reading with Fourpage, a free offline book reader: {url}'**
   String shareMessage(String url);
 
   /// No description provided for @statToday.
@@ -1591,7 +1591,7 @@ abstract class AppLocalizations {
   /// No description provided for @widgetEmpty.
   ///
   /// In en, this message translates to:
-  /// **'Open a book in Fourpages'**
+  /// **'Open a book in Fourpage'**
   String get widgetEmpty;
 
   /// No description provided for @define.
@@ -2107,7 +2107,7 @@ abstract class AppLocalizations {
   /// No description provided for @allowInstallsHint.
   ///
   /// In en, this message translates to:
-  /// **'Allow Fourpages to install apps, then tap Install again.'**
+  /// **'Allow Fourpage to install apps, then tap Install again.'**
   String get allowInstallsHint;
 
   /// No description provided for @upToDate.
@@ -2161,7 +2161,7 @@ abstract class AppLocalizations {
   /// No description provided for @supportOnKofiCaption.
   ///
   /// In en, this message translates to:
-  /// **'Fourpages is free, offline and has no ads. A coffee keeps it going.'**
+  /// **'Fourpage is free, offline and has no ads. A coffee keeps it going.'**
   String get supportOnKofiCaption;
 
   /// No description provided for @starOnGithub.

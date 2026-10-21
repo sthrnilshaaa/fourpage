@@ -509,7 +509,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
         Padding(
           padding: const EdgeInsets.only(bottom: 16),
           child: _FolderTile(
-            path: l10n.fourpagesImported,
+            path: l10n.fourpageImported,
             counts: {
               'EPUB': epubCount,
               if (otherCount > 0) l10n.other: otherCount,

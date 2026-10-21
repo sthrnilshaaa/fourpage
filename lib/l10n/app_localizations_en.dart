@@ -161,7 +161,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get importYour => 'Import Your ';
 
   @override
-  String get fourpagesSupportsEpubBooks => 'Fourpages supports EPUB books.';
+  String get fourpageSupportsEpubBooks => 'Fourpage supports EPUB books.';
 
   @override
   String get books => 'Books';
@@ -240,7 +240,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get other => 'Other';
 
   @override
-  String get fourpagesImported => 'Fourpages/Imported';
+  String get fourpageImported => 'Fourpage/Imported';
 
   @override
   String get home => 'Home';
@@ -630,7 +630,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get allFilesAccessExplanation =>
-      'Android hides EPUB files in folders from apps by default. To find the books inside a folder, Fourpages needs \"All files access\".\n\nTurn it on for Fourpages on the next screen, then come back.';
+      'Android hides EPUB files in folders from apps by default. To find the books inside a folder, Fourpage needs \"All files access\".\n\nTurn it on for Fourpage on the next screen, then come back.';
 
   @override
   String get importErrorLegacyDoc =>
@@ -736,7 +736,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notificationsBlocked =>
-      'Notifications are turned off for Fourpages. Allow them in system settings.';
+      'Notifications are turned off for Fourpage. Allow them in system settings.';
 
   @override
   String get haptics => 'Haptics';
@@ -776,24 +776,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get readingStats => 'Reading stats';
 
   @override
-  String get rateFourpages => 'Rate Fourpages';
+  String get rateFourpage => 'Rate Fourpage';
 
   @override
-  String get shareFourpages => 'Share Fourpages';
+  String get shareFourpage => 'Share Fourpage';
 
   @override
   String get supportTheProject => 'Support the project';
 
   @override
   String get supportTheProjectCaption =>
-      'Fourpages is free, offline and has no ads. Rating it or sharing it with a friend keeps it going.';
+      'Fourpage is free, offline and has no ads. Rating it or sharing it with a friend keeps it going.';
 
   @override
   String get storeUnavailable => 'Couldn\'t open the app store.';
 
   @override
   String shareMessage(String url) {
-    return 'I\'m reading with Fourpages, a free offline book reader: $url';
+    return 'I\'m reading with Fourpage, a free offline book reader: $url';
   }
 
   @override
@@ -894,7 +894,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get widgetEmpty => 'Open a book in Fourpages';
+  String get widgetEmpty => 'Open a book in Fourpage';
 
   @override
   String get define => 'Define';
@@ -1222,7 +1222,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get allowInstallsHint =>
-      'Allow Fourpages to install apps, then tap Install again.';
+      'Allow Fourpage to install apps, then tap Install again.';
 
   @override
   String get upToDate => 'You\'re on the latest version';
@@ -1253,7 +1253,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get supportOnKofiCaption =>
-      'Fourpages is free, offline and has no ads. A coffee keeps it going.';
+      'Fourpage is free, offline and has no ads. A coffee keeps it going.';
 
   @override
   String get starOnGithub => 'Star on GitHub';

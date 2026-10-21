@@ -24,8 +24,8 @@ void main() {
     expect(u.apkUrl.toString(), endsWith('arm64-v8a-release.apk'));
     expect(AppUpdater.parseGithubRelease(r, currentVersion: '1.1.0', abis: ['arm64-v8a']), isNull);
     final universal = AppUpdater.parseGithubRelease(
-      release('1.2.0', ['fourpages.apk']), currentVersion: '1.0.0', abis: ['x86_64']);
-    expect(universal!.apkUrl.toString(), endsWith('fourpages.apk'));
+      release('1.2.0', ['fourpage.apk']), currentVersion: '1.0.0', abis: ['x86_64']);
+    expect(universal!.apkUrl.toString(), endsWith('fourpage.apk'));
     expect(AppUpdater.parseGithubRelease(release('1.2.0', ['notes.txt']), currentVersion: '1.0.0', abis: []), isNull);
   });
 

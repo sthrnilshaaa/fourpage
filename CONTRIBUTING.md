@@ -1,10 +1,10 @@
-# Contributing to Fourpages
+# Contributing to Fourpage
 
 Thanks for helping! Bug reports, ideas, translations and code are all welcome.
 
 ## Ways to help
 
-- **Report a bug or suggest a feature:** open an [issue](https://github.com/sthrnilshaaa/fourpages/issues/new/choose).
+- **Report a bug or suggest a feature:** open an [issue](https://github.com/sthrnilshaaa/fourpage/issues/new/choose).
 - **Translate the app:** see [Translations](README.md#translations). No coding needed.
 - **Fix something:** look for issues labelled `good first issue` or `help wanted`.
 

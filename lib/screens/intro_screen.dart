@@ -346,7 +346,7 @@ class _IntroScreenState extends State<IntroScreen> {
           ),
           // Figma copy says "FourPage supports EPUB and PDF." - FourPage is
           // the old template name and PDF can't actually be opened.
-          subtitle: l10n.fourpagesSupportsEpubBooks,
+          subtitle: l10n.fourpageSupportsEpubBooks,
           subtitleTop: bottom(711),
         ),
       ],

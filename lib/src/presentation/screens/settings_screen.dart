@@ -731,8 +731,8 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
           icon: Icons.star_border_rounded,
           onTap: () => _openLink(AppConstants.githubUrl),
         ),
-        _ActionRow(label: l10n.rateFourpages, icon: Icons.star_outline_rounded, onTap: _rate),
-        _ActionRow(label: l10n.shareFourpages, icon: Icons.ios_share_rounded, onTap: _share),
+        _ActionRow(label: l10n.rateFourpage, icon: Icons.star_outline_rounded, onTap: _rate),
+        _ActionRow(label: l10n.shareFourpage, icon: Icons.ios_share_rounded, onTap: _share),
       ],
     );
   }

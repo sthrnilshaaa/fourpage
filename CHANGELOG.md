@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to Fourpages. The format follows
+All notable changes to Fourpage. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
@@ -65,7 +65,7 @@ First release.
 - Reader fonts: Literata, Lora, Source Serif, Atkinson Hyperlegible and
   IBM Plex Sans (all freely licensed).
 
-[Unreleased]: https://github.com/sthrnilshaaa/fourpages/compare/v1.0.2...HEAD
-[1.0.2]: https://github.com/sthrnilshaaa/fourpages/compare/v1.0.1...v1.0.2
-[1.0.1]: https://github.com/sthrnilshaaa/fourpages/compare/v1.0.0...v1.0.1
-[1.0.0]: https://github.com/sthrnilshaaa/fourpages/releases/tag/v1.0.0
+[Unreleased]: https://github.com/sthrnilshaaa/fourpage/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/sthrnilshaaa/fourpage/compare/v1.0.1...v1.0.2
+[1.0.1]: https://github.com/sthrnilshaaa/fourpage/compare/v1.0.0...v1.0.1
+[1.0.0]: https://github.com/sthrnilshaaa/fourpage/releases/tag/v1.0.0

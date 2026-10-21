@@ -1,14 +1,14 @@
 # Privacy Policy
 
-**Fourpages** (Android app `com.fourpages.reader`)
+**Fourpage** (Android app `com.fourpages.reader`)
 Effective: 19 October 2026
 
-Fourpages is a free, open-source book reader. It has no accounts, no ads, no
+Fourpage is a free, open-source book reader. It has no accounts, no ads, no
 analytics and no tracking. This policy explains what the app does with data.
 
 ## Data that stays on your device
 
-Everything you put into Fourpages is stored only on your phone, inside the
+Everything you put into Fourpage is stored only on your phone, inside the
 app's private storage:
 
 - the books and documents you import, and their covers;
@@ -29,7 +29,7 @@ The app only goes online for these optional features:
 | **Update check**, GitHub version | A request for the latest release (no personal data) | GitHub ([GitHub Privacy Statement](https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement)) |
 
 Like any internet request, these services can see your device's IP address.
-Fourpages sends no identifiers, account data or book contents. All connections
+Fourpage sends no identifiers, account data or book contents. All connections
 use HTTPS.
 
 Links you tap yourself (Ko-fi, GitHub, Google Play, sharing a quote) open in
@@ -48,7 +48,7 @@ applies.
 
 ## Children
 
-Fourpages is not directed at children under 13 and collects no personal
+Fourpage is not directed at children under 13 and collects no personal
 information from anyone.
 
 ## Data sharing and selling
@@ -60,9 +60,9 @@ or sell.
 
 Changes to this policy are published in this file, with a new effective date.
 The full history is on
-[GitHub](https://github.com/sthrnilshaaa/fourpages/commits/main/PRIVACY.md).
+[GitHub](https://github.com/sthrnilshaaa/fourpage/commits/main/PRIVACY.md).
 
 ## Contact
 
 Questions: open an issue at
-[github.com/sthrnilshaaa/fourpages/issues](https://github.com/sthrnilshaaa/fourpages/issues).
+[github.com/sthrnilshaaa/fourpage/issues](https://github.com/sthrnilshaaa/fourpage/issues).

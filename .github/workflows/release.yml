@@ -91,7 +91,7 @@ jobs:
           mkdir -p out
           for apk in build/app/outputs/flutter-apk/app-*-github-release.apk; do
             abi=$(basename "$apk" | sed -E 's/app-(.*)-github-release.apk/\1/')
-            cp "$apk" "out/Fourpages-$TAG-$abi.apk"
+            cp "$apk" "out/Fourpage-$TAG-$abi.apk"
           done
           (cd out && sha256sum *.apk > SHA256SUMS.txt)
           ls -l out
@@ -100,7 +100,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.TAG }}
-          name: Fourpages ${{ env.TAG }}
+          name: Fourpage ${{ env.TAG }}
           generate_release_notes: true
           files: |
             out/*.apk

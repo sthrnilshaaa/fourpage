@@ -5,10 +5,10 @@
 // 'flutter create' template.
 
 // The application's name. By default this is also the title of the Flutter window.
-PRODUCT_NAME = Fourpages
+PRODUCT_NAME = Fourpage
 
 // The application's bundle identifier
 PRODUCT_BUNDLE_IDENTIFIER = com.fourpages.reader
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2026 Fourpages. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2026 Fourpage. All rights reserved.

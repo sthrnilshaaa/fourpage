@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="widget_label">CONTINUE READING</string>
-    <string name="widget_empty_title">Open a book in Fourpages</string>
+    <string name="widget_empty_title">Open a book in Fourpage</string>
     <string name="widget_description">Your current book and progress</string>
 </resources>

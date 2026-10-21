@@ -1,11 +1,11 @@
 {
-    "name": "Fourpages",
-    "short_name": "Fourpages",
+    "name": "Fourpage",
+    "short_name": "Fourpage",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "Fourpages - an EPUB reader.",
+    "description": "Fourpage - an EPUB reader.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

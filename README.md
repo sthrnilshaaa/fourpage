@@ -1,14 +1,14 @@
 <div align="center">
 
-<img src="media/banner.png" alt="Fourpages — a free, offline book reader" width="100%">
+<img src="media/banner.png" alt="Fourpage — a free, offline book reader" width="100%">
 
-# Fourpages
+# Fourpage
 
 **A free, offline book reader for Android. No ads, no account, no tracking.**
 
-[![CI](https://github.com/sthrnilshaaa/fourpages/actions/workflows/ci.yml/badge.svg)](https://github.com/sthrnilshaaa/fourpages/actions/workflows/ci.yml)
+[![CI](https://github.com/sthrnilshaaa/fourpage/actions/workflows/ci.yml/badge.svg)](https://github.com/sthrnilshaaa/fourpage/actions/workflows/ci.yml)
 [![License: GPL v3](https://img.shields.io/badge/license-GPLv3-blue.svg)](LICENSE)
-[![GitHub stars](https://img.shields.io/github/stars/sthrnilshaaa/fourpages?style=social)](https://github.com/sthrnilshaaa/fourpages)
+[![GitHub stars](https://img.shields.io/github/stars/sthrnilshaaa/fourpage?style=social)](https://github.com/sthrnilshaaa/fourpage)
 [![Support on Ko-fi](https://img.shields.io/badge/Ko--fi-support-ff5e5b?logo=ko-fi&logoColor=white)](https://ko-fi.com/L2L124TL7L)
 
 [**Download**](#download) · [Features](#features) · [Build](#build-from-source) · [Translate](#translations) · [Contribute](CONTRIBUTING.md) · [Support](#support)
@@ -59,7 +59,7 @@
 
 ## Download
 
-APK downloads will be on [GitHub Releases](https://github.com/sthrnilshaaa/fourpages/releases) soon.
+APK downloads will be on [GitHub Releases](https://github.com/sthrnilshaaa/fourpage/releases) soon.
 Until then, [build it from source](#build-from-source).
 
 ## Build from source
@@ -68,8 +68,8 @@ Requirements: [Flutter](https://docs.flutter.dev/get-started/install) (stable, s
 `FLUTTER_VERSION` in [`.github/workflows/ci.yml`](.github/workflows/ci.yml)), Java 17, Android SDK.
 
 ```sh
-git clone https://github.com/sthrnilshaaa/fourpages.git
-cd fourpages
+git clone https://github.com/sthrnilshaaa/fourpage.git
+cd fourpage
 flutter pub get
 flutter run                     # Android
 flutter test                    # unit & widget tests
@@ -108,7 +108,7 @@ All UI text lives in [`lib/l10n/app_en.arb`](lib/l10n/app_en.arb). To add or imp
 3. Run `flutter gen-l10n` and check it in the app (Settings › Appearance › Language).
 4. Open a pull request. Partial translations are fine; missing strings fall back to English.
 
-Not a coder? Open a [translation issue](https://github.com/sthrnilshaaa/fourpages/issues/new?template=translation.yml).
+Not a coder? Open a [translation issue](https://github.com/sthrnilshaaa/fourpage/issues/new?template=translation.yml).
 
 ## Contributing
 
@@ -118,10 +118,10 @@ see [SECURITY.md](SECURITY.md).
 
 ## Support
 
-Fourpages is free and has no ads. If it's useful to you:
+Fourpage is free and has no ads. If it's useful to you:
 
 - ☕ [Buy a coffee on Ko-fi](https://ko-fi.com/L2L124TL7L)
-- ⭐ [Star the repo](https://github.com/sthrnilshaaa/fourpages)
+- ⭐ [Star the repo](https://github.com/sthrnilshaaa/fourpage)
 - Share it with a friend
 
 ## Acknowledgements
@@ -135,6 +135,6 @@ Fourpages is free and has no ads. If it's useful to you:
 
 ## License
 
-Fourpages is free software under the [GNU General Public License v3.0](LICENSE).
+Fourpage is free software under the [GNU General Public License v3.0](LICENSE).
 You may use, study, share and change it; if you distribute a modified version,
 it must also be GPL-3.0 with its source available.
