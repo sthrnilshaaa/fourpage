@@ -2,6 +2,7 @@
 library;
 
 import '../../domain/entities/annotation.dart';
+import '../../domain/entities/bookmark.dart';
 import '../../domain/entities/locator.dart';
 import '../../domain/entities/reader_preferences.dart';
 
@@ -70,6 +71,12 @@ class CreateBookmarkCommand extends ReaderCommand {
 class DeleteBookmarkCommand extends ReaderCommand {
   final String bookmarkId;
   const DeleteBookmarkCommand(this.bookmarkId);
+}
+
+/// Puts a removed bookmark back as it was (same id), for Undo.
+class RestoreBookmarkCommand extends ReaderCommand {
+  final Bookmark bookmark;
+  const RestoreBookmarkCommand(this.bookmark);
 }
 
 class ExecuteSearchCommand extends ReaderCommand {

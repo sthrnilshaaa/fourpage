@@ -499,7 +499,7 @@ abstract class AppLocalizations {
   /// No description provided for @removeBookmark.
   ///
   /// In en, this message translates to:
-  /// **'Remove Bookmark'**
+  /// **'Remove bookmark'**
   String get removeBookmark;
 
   /// No description provided for @vertical.
@@ -2349,6 +2349,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Release to go to {percent}%'**
   String seekToPercent(int percent);
+
+  /// No description provided for @highlightAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Highlighted'**
+  String get highlightAdded;
+
+  /// No description provided for @noteAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Note added'**
+  String get noteAdded;
+
+  /// No description provided for @noteRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Note removed'**
+  String get noteRemoved;
+
+  /// No description provided for @bookmarkAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Page bookmarked'**
+  String get bookmarkAdded;
+
+  /// No description provided for @bookmarkRemoved.
+  ///
+  /// In en, this message translates to:
+  /// **'Bookmark removed'**
+  String get bookmarkRemoved;
+
+  /// No description provided for @removeNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove note'**
+  String get removeNote;
+
+  /// No description provided for @pageBookmarked.
+  ///
+  /// In en, this message translates to:
+  /// **'This page is bookmarked'**
+  String get pageBookmarked;
+
+  /// No description provided for @bookmarksSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Bookmarks'**
+  String get bookmarksSection;
+
+  /// No description provided for @highlightsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Highlights & notes'**
+  String get highlightsSection;
 }
 
 class _AppLocalizationsDelegate

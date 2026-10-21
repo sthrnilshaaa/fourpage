@@ -42,7 +42,27 @@ class BookImportActions {
 
   /// Opens the file picker (multi-select, every supported format) and imports
   /// the chosen files. Shows the result as a snackbar on [context].
-  static Future<ImportOutcome> pickFiles(BuildContext context) async {
+  static Future<ImportOutcome> pickFiles(BuildContext context) => _once(() => _pickFiles(context));
+
+  /// Asks for folder access (Android), lets the user pick a folder and
+  /// imports every supported document inside it.
+  static Future<ImportOutcome> scanFolder(BuildContext context) => _once(() => _scanFolder(context));
+
+  // One import at a time: a second tap while the picker is open or books
+  // are importing would open a second picker (the plugin throws) or import twice.
+  static bool _running = false;
+
+  static Future<ImportOutcome> _once(Future<ImportOutcome> Function() run) async {
+    if (_running) return const ImportOutcome(cancelled: true);
+    _running = true;
+    try {
+      return await run();
+    } finally {
+      _running = false;
+    }
+  }
+
+  static Future<ImportOutcome> _pickFiles(BuildContext context) async {
     final messenger = ScaffoldMessenger.of(context);
     final List<PlatformFile> files;
     try {
@@ -87,9 +107,7 @@ class BookImportActions {
     return ImportOutcome(imported: imported, failed: failures.length, lastTitle: lastTitle);
   }
 
-  /// Asks for folder access (Android), lets the user pick a folder and
-  /// imports every supported document inside it.
-  static Future<ImportOutcome> scanFolder(BuildContext context) async {
+  static Future<ImportOutcome> _scanFolder(BuildContext context) async {
     final messenger = ScaffoldMessenger.of(context);
     final String? folder;
     if (FolderTree.isUsed) {

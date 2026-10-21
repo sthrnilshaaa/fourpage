@@ -111,6 +111,8 @@ class ReadingSession {
       await _handleCreateBookmark(command);
     } else if (command is DeleteBookmarkCommand) {
       await _handleDeleteBookmark(command.bookmarkId);
+    } else if (command is RestoreBookmarkCommand) {
+      await _handleRestoreBookmark(command.bookmark);
     } else if (command is ExecuteSearchCommand) {
       await _handleSearch(command.query);
     } else if (command is UpdatePreferencesCommand) {
@@ -261,6 +263,14 @@ class ReadingSession {
     );
 
     final updated = List<Bookmark>.from(_state.bookmarks)..add(bookmark);
+    _updateState(_state.copyWith(bookmarks: updated));
+  }
+
+  Future<void> _handleRestoreBookmark(Bookmark bookmark) async {
+    await _annotationRepository.saveBookmark(bookmark);
+    final updated = List<Bookmark>.from(_state.bookmarks)
+      ..removeWhere((b) => b.id == bookmark.id)
+      ..add(bookmark);
     _updateState(_state.copyWith(bookmarks: updated));
   }
 

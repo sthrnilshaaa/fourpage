@@ -16,6 +16,7 @@ import '../../application/mappers/sakura_epub_mapper.dart';
 import '../../application/session/reading_session.dart';
 import '../../data/repositories/sqlite_reader_preferences_repository.dart';
 import '../../domain/entities/annotation.dart';
+import '../../domain/entities/bookmark.dart';
 import '../../domain/entities/locator.dart';
 import '../../domain/entities/nav_item.dart';
 import '../../domain/entities/reader_preferences.dart';
@@ -38,6 +39,7 @@ import '../widgets/reader_page_skeleton.dart';
 import '../widgets/sakura_customization_sheet.dart';
 import '../widgets/sakura_toc_sheet.dart';
 import '../widgets/word_definition_sheet.dart';
+import '../utils/saved_item_actions.dart';
 import '../../data/dictionary/dictionary_service.dart';
 
 /// Book view for Android on the native PageEngine (Kotlin, `:reader` module).
@@ -175,6 +177,9 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
   double _pageWidth = 360;
 
   int _pagesLeft = -1;
+  // Where the current page's text ends in its chapter (chars); -1 = not known yet.
+  int _pageEnd = -1;
+  bool _bookmarkBusy = false;
   static const double _footerHeight = 28;
 
   // Zoomed-out page strip: previous/current/next page images.
@@ -462,6 +467,7 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
       _chapterInfoFor = p.resourceIndex;
       _refreshChapterInfo();
     }
+    _findPageEnd(engine, p);
     if (save) {
       _positionSaveDebounce?.cancel();
       _positionSaveDebounce = Timer(const Duration(milliseconds: 600), () => _savePosition(loc));
@@ -724,6 +730,37 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
     try {
       cfi = await _engine?.cfiRange(r.r, r.start, r.end);
     } catch (_) {}
+    final messenger = ScaffoldMessenger.of(context);
+    // The same text highlighted again: change that highlight instead of stacking a copy on it.
+    final chapter = href.split('#').first;
+    for (final a in _session.state.annotations) {
+      final range = NativeLocatorMapper.rangeOf(a);
+      if (range == null || range.href.split('#').first != chapter || range.start != r.start || range.end != r.end) continue;
+      if (note == null && a.colorHex.toUpperCase() == colorHex.toUpperCase()) return;
+      final updated = Annotation(
+        id: a.id,
+        publicationId: a.publicationId,
+        locator: a.locator,
+        textQuote: a.textQuote,
+        textPrefix: a.textPrefix,
+        textSuffix: a.textSuffix,
+        note: note ?? a.note,
+        colorHex: colorHex,
+        type: note != null || (a.note ?? '').isNotEmpty ? AnnotationType.note : AnnotationType.highlight,
+        createdAt: a.createdAt,
+        updatedAt: DateTime.now(),
+      );
+      await _session.dispatchCommand(UpdateAnnotationCommand(updated));
+      _highlights.remove(a.id);
+      await _syncHighlights();
+      showUndoSnackBar(messenger, note == null ? l10n.highlightAdded : l10n.noteAdded, () async {
+        await _session.dispatchCommand(UpdateAnnotationCommand(a));
+        _highlights.remove(a.id);
+        if (mounted) await _syncHighlights();
+      });
+      return;
+    }
+    final before = {for (final a in _session.state.annotations) a.id};
     await _session.dispatchCommand(
       CreateAnnotationCommand(
         locator: NativeLocatorMapper.rangeLocator(href, r.start, r.end, text, cfi: cfi),
@@ -734,6 +771,14 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
       ),
     );
     await _syncHighlights();
+    final created = _session.state.annotations.where((a) => !before.contains(a.id)).toList();
+    if (created.isEmpty) return;
+    showUndoSnackBar(messenger, note == null ? l10n.highlightAdded : l10n.noteAdded, () async {
+      for (final a in created) {
+        await _session.dispatchCommand(DeleteAnnotationCommand(a.id));
+      }
+      if (mounted) await _syncHighlights();
+    });
   }
 
   Future<void> _copySelection(String text) async {
@@ -918,42 +963,76 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
       );
 
   Future<void> _removeHighlight(Annotation annotation) async {
-    await _session.dispatchCommand(DeleteAnnotationCommand(annotation.id));
-    await _syncHighlights();
     if (!mounted) return;
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(l10n.highlightRemoved),
-        duration: const Duration(seconds: 6),
-        persist: false,
-        behavior: SnackBarBehavior.floating,
-        action: SnackBarAction(
-          label: l10n.undo,
-          textColor: AppColors.accentLime,
-          onPressed: () async {
-            // Same annotation back (same id), so the Saved list and notes are unchanged.
-            await _session.dispatchCommand(UpdateAnnotationCommand(annotation));
-            await _syncHighlights();
-          },
-        ),
-      ),
+    await removeAnnotationWithUndo(
+      ScaffoldMessenger.of(context),
+      _session,
+      annotation,
+      onChanged: () async {
+        if (mounted) await _syncHighlights();
+      },
     );
   }
 
-  void _addBookmark() {
+  /// Finds where page [p] ends (the next page's start in the same chapter).
+  Future<void> _findPageEnd(NativeReaderEngine engine, NativePage p) async {
+    var end = 1 << 30;
+    try {
+      final next = await engine.step(p, 1);
+      if (next != null && next.resourceIndex == p.resourceIndex) end = (await engine.locator(next)).charOffset;
+    } catch (_) {
+      return;
+    }
+    if (mounted && _page == p && end != _pageEnd) setState(() => _pageEnd = end);
+  }
+
+  /// Bookmarks that fall on the page now shown.
+  List<Bookmark> get _bookmarksHere {
     final loc = _lastLocator;
-    if (loc == null) return;
-    _session.dispatchCommand(
-      CreateBookmarkCommand(
-        locator: NativeLocatorMapper.toLocator(loc),
-        title: l10n.bookmarkAtPercent((_progress * 100).round()),
-      ),
-    );
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.bookmarkedCurrentLocation), backgroundColor: AppColors.accentLime),
-    );
+    if (loc == null) return const [];
+    final chapter = loc.href.split('#').first;
+    final end = _pageEnd > loc.charOffset ? _pageEnd : loc.charOffset + 1;
+    return _session.state.bookmarks.where((b) {
+      if (b.locator.href.split('#').first != chapter) return false;
+      final at = b.locator.locations.charOffset;
+      return at != null && at >= loc.charOffset && at < end;
+    }).toList();
+  }
+
+  /// Bookmarks the page, or removes its bookmark when it has one; both can be undone.
+  Future<void> _toggleBookmark() async {
+    final loc = _lastLocator;
+    if (loc == null || _bookmarkBusy) return;
+    _bookmarkBusy = true;
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final here = _bookmarksHere;
+      if (here.isNotEmpty) {
+        for (final b in here) {
+          await removeBookmarkWithUndo(messenger, _session, b, onChanged: () async {
+            if (mounted) setState(() {});
+          });
+        }
+        return;
+      }
+      final before = {for (final b in _session.state.bookmarks) b.id};
+      await _session.dispatchCommand(
+        CreateBookmarkCommand(
+          locator: NativeLocatorMapper.toLocator(loc),
+          title: l10n.bookmarkAtPercent((_progress * 100).round()),
+        ),
+      );
+      if (mounted) setState(() {});
+      final created = _session.state.bookmarks.where((b) => !before.contains(b.id)).toList();
+      showUndoSnackBar(messenger, l10n.bookmarkAdded, () async {
+        for (final b in created) {
+          await _session.dispatchCommand(DeleteBookmarkCommand(b.id));
+        }
+        if (mounted) setState(() {});
+      });
+    } finally {
+      _bookmarkBusy = false;
+    }
   }
 
   // --- taps & gestures --------------------------------------------------------------------------
@@ -1759,9 +1838,13 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
             onPressed: _showSearchSheet,
           ),
           IconButton(
-            tooltip: l10n.bookmarkThisPage,
-            icon: Icon(Icons.bookmark_add_outlined, color: AppColors.fg, size: 22),
-            onPressed: _addBookmark,
+            tooltip: _bookmarksHere.isNotEmpty ? l10n.removeBookmark : l10n.bookmarkThisPage,
+            icon: Icon(
+              _bookmarksHere.isNotEmpty ? Icons.bookmark_rounded : Icons.bookmark_add_outlined,
+              color: _bookmarksHere.isNotEmpty ? AppColors.accentLime : AppColors.fg,
+              size: 22,
+            ),
+            onPressed: _toggleBookmark,
           ),
           ReaderPaneToggles(color: AppColors.fg),
           IconButton(icon: const _ReaderMenuGlyph(), onPressed: _showReaderMenu),
@@ -1806,6 +1889,10 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
         chapters: _toc,
         notes: _session.state.annotations,
         onNavigateToHref: _navigateToHref,
+        session: _session,
+        onAnnotationsChanged: () async {
+          if (mounted) await _syncHighlights();
+        },
       ),
     );
   }
@@ -1998,6 +2085,10 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
               chapters: _toc,
               notes: _session.state.annotations,
               onNavigateToHref: _navigateToHref,
+              session: _session,
+              onAnnotationsChanged: () async {
+                if (mounted) await _syncHighlights();
+              },
             ),
           ),
           settings: ReaderFocusReturn(
@@ -2041,7 +2132,7 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
           return KeyEventResult.handled;
         }
         if (key == LogicalKeyboardKey.keyB) {
-          _addBookmark();
+          _toggleBookmark();
           return KeyEventResult.handled;
         }
         return KeyEventResult.ignored;
@@ -2590,7 +2681,7 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
       items: [
         for (final (value, label) in [
           ('customize', l10n.customization),
-          ('bookmark', l10n.bookmarkThisPage),
+          ('bookmark', _bookmarksHere.isNotEmpty ? l10n.removeBookmark : l10n.bookmarkThisPage),
           ('search', l10n.searchInBook),
           ('chapters', l10n.chapters),
           ('original', l10n.originalLayout),
@@ -2607,7 +2698,7 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
       case 'customize':
         _showCustomizationSheet();
       case 'bookmark':
-        _addBookmark();
+        _toggleBookmark();
       case 'search':
         _showSearchSheet();
       case 'chapters':
@@ -2638,6 +2729,7 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
       subtitle = l10n.percentRead(percent);
     }
     final dragWidth = MediaQuery.sizeOf(context).width - 32;
+    final bookmarked = _bookmarksHere.isNotEmpty;
 
     void dragStart(DragStartDetails _) {
       if (!_locationsReady) return;
@@ -2737,9 +2829,13 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
                 ),
                 const SizedBox(width: 8),
                 roundButton(
-                  tooltip: l10n.bookmarkThisPage,
-                  onTap: _addBookmark,
-                  child: Icon(Icons.bookmark_border_rounded, size: 21, color: AppColors.fg),
+                  tooltip: bookmarked ? l10n.removeBookmark : l10n.bookmarkThisPage,
+                  onTap: _toggleBookmark,
+                  child: Icon(
+                    bookmarked ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+                    size: 21,
+                    color: bookmarked ? AppColors.accentLime : AppColors.fg,
+                  ),
                 ),
                 const SizedBox(width: 6),
                 roundButton(

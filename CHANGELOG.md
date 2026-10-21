@@ -6,6 +6,31 @@ All notable changes to Fourpages. The format follows
 
 ## [Unreleased]
 
+## [1.0.2] - 2026-10-21
+
+### Added
+- Undo after highlighting text or adding a note, and after removing either.
+- Bookmark button toggles: it fills in on a bookmarked page and tapping it
+  again removes the bookmark (with Undo).
+- Chapters & Notes lists your bookmarks; swipe or tap the bin to remove a
+  bookmark, highlight or note, with Undo.
+- Saved: swipe a quote, note or bookmark to remove it (Undo), or long-press
+  for Open, Copy, Share and Remove. Newest first; notes show their text.
+
+### Changed
+- Reader footer is now a dock: a progress ring with the percentage, the
+  chapter and pages left, and Bookmark and Aa buttons. Drag sideways on it
+  to move through the book.
+- Page overview no longer repeats the current chapter or the pages-left
+  line; both stay in the footer.
+
+### Fixed
+- A quick double tap on a book opened two readers.
+- Tapping Import twice opened two file pickers.
+- Highlighting the same text twice stacked duplicate highlights.
+- Undo after removing a book's whole library entry no longer brings its
+  highlights back.
+
 ## [1.0.1] - 2026-10-20
 
 ### Added
@@ -40,6 +65,7 @@ First release.
 - Reader fonts: Literata, Lora, Source Serif, Atkinson Hyperlegible and
   IBM Plex Sans (all freely licensed).
 
-[Unreleased]: https://github.com/sthrnilshaaa/fourpages/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/sthrnilshaaa/fourpages/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/sthrnilshaaa/fourpages/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/sthrnilshaaa/fourpages/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/sthrnilshaaa/fourpages/releases/tag/v1.0.0

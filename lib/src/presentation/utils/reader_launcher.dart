@@ -65,7 +65,14 @@ ReaderEngine resolveReaderEngine({
 
 ReaderEngine get currentReaderEngine => resolveReaderEngine(platform: defaultTargetPlatform, isWeb: kIsWeb);
 
+// A quick second tap (double tap, or two tiles) would push a second reader
+// on top of the first; both would open the same book's engine.
+bool _readerOpening = false;
+
 Future<void> openReader(BuildContext context, BookItem book, {Locator? initialLocator}) {
+  if (_readerOpening) return Future.value();
+  _readerOpening = true;
+  Future<void>.delayed(const Duration(milliseconds: 700), () => _readerOpening = false);
   final Widget screen = book.isPdf ? PdfReaderScreen(book: book) : switch (currentReaderEngine) {
     ReaderEngine.native => NativeReaderScreen(book: book, initialLocator: initialLocator),
     ReaderEngine.sakura => SakuraReaderScreen(book: book, initialLocator: initialLocator),

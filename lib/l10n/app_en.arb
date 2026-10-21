@@ -237,7 +237,7 @@
   "textSize": "Text Size",
   "alignment": "Alignment",
   "addBookmark": "Add Bookmark",
-  "removeBookmark": "Remove Bookmark",
+  "removeBookmark": "Remove bookmark",
   "vertical": "Vertical",
   "horizontal": "Horizontal",
   "feedback": "Feedback",
@@ -749,5 +749,14 @@
         "type": "int"
       }
     }
-  }
+  },
+  "highlightAdded": "Highlighted",
+  "noteAdded": "Note added",
+  "noteRemoved": "Note removed",
+  "bookmarkAdded": "Page bookmarked",
+  "bookmarkRemoved": "Bookmark removed",
+  "removeNote": "Remove note",
+  "pageBookmarked": "This page is bookmarked",
+  "bookmarksSection": "Bookmarks",
+  "highlightsSection": "Highlights & notes"
 }

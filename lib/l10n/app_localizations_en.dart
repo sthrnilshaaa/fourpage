@@ -285,7 +285,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addBookmark => 'Add Bookmark';
 
   @override
-  String get removeBookmark => 'Remove Bookmark';
+  String get removeBookmark => 'Remove bookmark';
 
   @override
   String get vertical => 'Vertical';
@@ -1356,4 +1356,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String seekToPercent(int percent) {
     return 'Release to go to $percent%';
   }
+
+  @override
+  String get highlightAdded => 'Highlighted';
+
+  @override
+  String get noteAdded => 'Note added';
+
+  @override
+  String get noteRemoved => 'Note removed';
+
+  @override
+  String get bookmarkAdded => 'Page bookmarked';
+
+  @override
+  String get bookmarkRemoved => 'Bookmark removed';
+
+  @override
+  String get removeNote => 'Remove note';
+
+  @override
+  String get pageBookmarked => 'This page is bookmarked';
+
+  @override
+  String get bookmarksSection => 'Bookmarks';
+
+  @override
+  String get highlightsSection => 'Highlights & notes';
 }
