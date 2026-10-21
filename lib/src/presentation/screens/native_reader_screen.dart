@@ -1376,8 +1376,25 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
     final engine = _engine;
     final page = _page;
     if (engine == null || page == null) return;
-    final info = await engine.chapterInfo(page);
-    if (mounted) setState(() => _chapterInfo = info.toScreenMap());
+    final Map<String, dynamic> map;
+    try {
+      map = (await engine.chapterInfo(page)).toScreenMap();
+      // Chapters missing from the book's contents (or contents whose links
+      // don't match its files) still have neighbours: fall back to the
+      // previous/next chapter file so the overview boxes and the chapter
+      // swipe keep working.
+      final r = page.resourceIndex;
+      if (map['prev'] == null && r > 0) {
+        map['prev'] = {'title': l10n.previousChapter, 'href': await engine.chapterHref(r - 1)};
+      }
+      if (map['next'] == null && r < engine.chapterCount - 1) {
+        map['next'] = {'title': l10n.nextChapter, 'href': await engine.chapterHref(r + 1)};
+      }
+    } catch (e) {
+      debugPrint('NativeReader: chapter info failed: $e');
+      return;
+    }
+    if (mounted && _page?.resourceIndex == page.resourceIndex) setState(() => _chapterInfo = map);
   }
 
   String? _chapterTitle(String key) {
@@ -2445,7 +2462,8 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
                       Positioned(
                         left: 24,
                         right: 24,
-                        bottom: 60,
+                        // Above the footer dock (24 from the screen bottom, _barHeight tall).
+                        bottom: math.max(60.0, 24 + _barHeight + 12 - pageBottom),
                         child: _chapterBox(nextTitle, up: false, armed: armedNext, onTap: () => _goChapterInZoom(1)),
                       ),
                   ],
