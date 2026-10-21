@@ -2153,7 +2153,7 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
     final showPages = _paginated && _pagesLeft >= 0;
     // While the progress bar shows, the line moves up above it instead of
     // hiding behind it (bar: 24 from the bottom, [_barHeight] tall).
-    final lifted = _bottomVisible && _epubReady;
+    final lifted = _bottomVisible && _epubReady && !_zoomed;
     // The strip under the page grows (in the page colour) so the line sits
     // above the bar; it shrinks back when the bar hides.
     final textBottom = lifted ? math.max(insetBottom, 24.0 + _barHeight + 6) : insetBottom;
@@ -2169,7 +2169,12 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
           color: SakuraEpubMapper.pageColorFor(_theme),
           child: Align(
             alignment: Alignment.topCenter,
-            child: SizedBox(
+            // Hidden in the page overview (the dock shows the same); back
+            // on the single page.
+            child: AnimatedOpacity(
+              duration: _chromeDuration,
+              opacity: _zoomed ? 0 : 1,
+              child: SizedBox(
               height: _footerHeight,
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: pad),
@@ -2187,6 +2192,7 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
           ],
         ),
               ),
+            ),
             ),
           ),
         ),
@@ -2270,7 +2276,6 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
     final vertical = _paginated; // chapter axis
     final prevTitle = _chapterTitle('prev');
     final nextTitle = _chapterTitle('next');
-    final currentTitle = _chapterTitle('current');
     void dragUpdate(DragUpdateDetails d) {
       final delta = vertical ? d.delta.dy : d.delta.dx;
       var v = _chapterDragN.value + delta;
@@ -2337,13 +2342,6 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
                       child: strip,
                     ),
                   ),
-                  if (_zoomShrunk && currentTitle != null)
-                    Positioned(
-                      left: 0,
-                      right: 0,
-                      top: pageH * (0.5 + _stripScale / 2) + 8 + (vertical ? drag * 0.5 : 0),
-                      child: Center(child: _chapterLabel(currentTitle)),
-                    ),
                   if (_zoomShrunk && vertical) ...[
                     if (prevTitle != null)
                       Positioned(
@@ -2439,25 +2437,6 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
   }
 
   /// Current chapter name under the centre card.
-  Widget _chapterLabel(String title) {
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 280),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-        decoration: BoxDecoration(
-          color: AppColors.figmaSurface,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AppColors.fg.withValues(alpha: 0.08)),
-        ),
-        child: Text(
-          title,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: GoogleFonts.sora(fontSize: 12, color: AppColors.fgMuted),
-        ),
-      ),
-    );
-  }
 
   /// Definition of the selected word, on the half of the page away from it.
   Widget _buildLoadFailure(BuildContext context, String message) {
@@ -2639,134 +2618,136 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
     }
   }
 
-  /// Height of the footer pill (see [_buildBottomBar]).
-  static const double _barHeight = 84;
+  /// Height of the footer dock (see [_buildBottomBar]).
+  static const double _barHeight = 68;
 
-  /// Previous (-1) or next (1) chapter from the footer's arrow buttons.
-  Future<void> _jumpChapter(int dir) async {
-    final engine = _engine;
-    final page = _page;
-    if (engine == null || page == null) return;
-    _onUserActivity();
-    AppHaptics.tick();
-    if (_zoomed) {
-      _goChapterInZoom(dir);
-      return;
-    }
-    final entry = _chapterInfo?[dir > 0 ? 'next' : 'prev'];
-    final href = entry is Map ? entry['href'] as String? : null;
-    if (href != null) {
-      await _goTo(engine.atHref(href));
-    } else {
-      final target = page.resourceIndex + dir;
-      if (target < 0 || target >= engine.chapterCount) return;
-      await _goTo(engine.at(target, 0));
-    }
-    _refreshChapterInfo();
-  }
-
-  /// The footer pill: chapter name and pages left on top; chapter arrows,
-  /// the seek bar and the percentage below. Tapping the top row (or any
-  /// spot that isn't a control) opens Chapters & Notes.
+  /// The footer dock: a progress ring with the percentage, the chapter name
+  /// with pages left, then Bookmark and reading settings. Drag sideways on
+  /// the ring or the title to seek; tap the title to open Chapters & Notes.
   Widget _buildBottomBar(BuildContext context) {
+    final seeking = _seekPreview != null;
     final shown = (_seekPreview ?? _progress).clamp(0.0, 1.0);
+    final percent = (shown * 100).round();
     final chapter = _chapterTitle('current') ?? widget.book.publication.metadata.title;
-    final hasPrev = _chapterTitle('prev') != null || (_page?.resourceIndex ?? 0) > 0;
-    final engine = _engine;
-    final hasNext = _chapterTitle('next') != null ||
-        (engine != null && _page != null && _page!.resourceIndex < engine.chapterCount - 1);
-    final faint = GoogleFonts.sora(fontSize: 11.5, color: AppColors.textFaint);
+    final String subtitle;
+    if (seeking) {
+      subtitle = l10n.seekToPercent(percent);
+    } else if (_paginated && _pagesLeft >= 0) {
+      subtitle = l10n.pagesLeftInBook(_pagesLeft);
+    } else {
+      subtitle = l10n.percentRead(percent);
+    }
+    final dragWidth = MediaQuery.sizeOf(context).width - 32;
 
-    Widget arrow(IconData icon, String tip, bool enabled, int dir) => SizedBox(
-          width: 34,
-          height: 42,
-          child: IconButton(
-            padding: EdgeInsets.zero,
-            tooltip: tip,
-            iconSize: 22,
-            onPressed: enabled ? () => _jumpChapter(dir) : null,
-            color: AppColors.fg.withValues(alpha: 0.8),
-            disabledColor: AppColors.fg.withValues(alpha: 0.2),
-            icon: Icon(icon),
-          ),
-        );
+    void dragStart(DragStartDetails _) {
+      if (!_locationsReady) return;
+      _onUserActivity();
+      setState(() => _seekPreview = _progress.clamp(0.0, 1.0));
+    }
+
+    void dragUpdate(DragUpdateDetails d) {
+      final from = _seekPreview;
+      if (from == null) return;
+      _onUserActivity();
+      setState(() => _seekPreview = (from + d.delta.dx / dragWidth).clamp(0.0, 1.0));
+    }
+
+    void dragEnd(DragEndDetails _) {
+      final to = _seekPreview;
+      if (to != null) _seekTo(to);
+    }
+
+    Widget roundButton({required String tooltip, required VoidCallback onTap, required Widget child}) => Tooltip(
+      message: tooltip,
+      child: Material(
+        color: AppColors.fg.withValues(alpha: 0.06),
+        shape: const CircleBorder(),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () {
+            _onUserActivity();
+            onTap();
+          },
+          child: SizedBox(width: 44, height: 44, child: Center(child: child)),
+        ),
+      ),
+    );
 
     return Positioned(
       bottom: 24,
       left: 16,
       right: 16,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: _showTocSheet,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(22),
-          child: BackdropFilter(
-            filter: ui.ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-            child: Container(
-              height: _barHeight,
-              padding: const EdgeInsets.fromLTRB(6, 10, 6, 2),
-              decoration: BoxDecoration(
-                color: AppColors.pillSurface.withValues(alpha: 0.88),
-                borderRadius: BorderRadius.circular(22),
-                border: Border.all(color: AppColors.fg.withValues(alpha: 0.1)),
-                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.25), blurRadius: 18, offset: const Offset(0, 6))],
-              ),
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(_barHeight / 2),
+        child: BackdropFilter(
+          filter: ui.ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+          child: Container(
+            height: _barHeight,
+            padding: const EdgeInsets.fromLTRB(9, 0, 8, 0),
+            decoration: BoxDecoration(
+              color: AppColors.pillSurface.withValues(alpha: 0.9),
+              borderRadius: BorderRadius.circular(_barHeight / 2),
+              border: Border.all(color: AppColors.fg.withValues(alpha: 0.1)),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: _showTocSheet,
+                    onHorizontalDragStart: dragStart,
+                    onHorizontalDragUpdate: dragUpdate,
+                    onHorizontalDragEnd: dragEnd,
+                    onHorizontalDragCancel: () => setState(() => _seekPreview = null),
                     child: Row(
                       children: [
-                        Icon(Icons.toc_rounded, size: 15, color: AppColors.textFaint),
-                        const SizedBox(width: 6),
+                        _ProgressRing(value: shown, label: '$percent%', active: seeking),
+                        const SizedBox(width: 12),
                         Expanded(
-                          child: Text(
-                            chapter,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.sora(fontSize: 12.5, fontWeight: FontWeight.w600, color: AppColors.fg),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                chapter,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.sora(
+                                  fontSize: 13.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.fg,
+                                ),
+                              ),
+                              const SizedBox(height: 3),
+                              Text(
+                                subtitle,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.sora(
+                                  fontSize: 11.5,
+                                  color: seeking ? AppColors.accentLime : AppColors.textFaint,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        if (_paginated && _pagesLeft >= 0) ...[
-                          const SizedBox(width: 10),
-                          Text(l10n.pagesLeftShort(_pagesLeft), style: faint),
-                        ],
                       ],
                     ),
                   ),
-                  Expanded(
-                    child: Row(
-                      children: [
-                        arrow(Icons.chevron_left_rounded, l10n.previousChapter, hasPrev, -1),
-                        Expanded(
-                          child: _ProgressScrubber(
-                            value: shown,
-                            enabled: _locationsReady,
-                            onChanged: (v) {
-                              _onUserActivity();
-                              setState(() => _seekPreview = v);
-                            },
-                            onChangeEnd: _seekTo,
-                          ),
-                        ),
-                        SizedBox(
-                          width: 40,
-                          child: Text(
-                            '${(shown * 100).round()}%',
-                            textAlign: TextAlign.right,
-                            style: GoogleFonts.sora(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: _seekPreview != null ? AppColors.accentLime : AppColors.fg,
-                            ),
-                          ),
-                        ),
-                        arrow(Icons.chevron_right_rounded, l10n.nextChapter, hasNext, 1),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+                ),
+                const SizedBox(width: 8),
+                roundButton(
+                  tooltip: l10n.bookmarkThisPage,
+                  onTap: _addBookmark,
+                  child: Icon(Icons.bookmark_border_rounded, size: 21, color: AppColors.fg),
+                ),
+                const SizedBox(width: 6),
+                roundButton(
+                  tooltip: l10n.readingSettings,
+                  onTap: _showCustomizationSheet,
+                  child: Text('Aa', style: GoogleFonts.literata(fontSize: 16, color: AppColors.fg)),
+                ),
+              ],
             ),
           ),
         ),
@@ -3029,106 +3010,62 @@ class _ReaderMenuGlyph extends StatelessWidget {
 
 /// Footer progress bar you can tap or drag to jump through the book.
 /// Reports the dragged position live and commits it on release.
-class _ProgressScrubber extends StatefulWidget {
+/// Footer progress ring with the percentage inside.
+class _ProgressRing extends StatelessWidget {
   final double value;
-  final bool enabled;
-  final ValueChanged<double> onChanged;
-  final ValueChanged<double> onChangeEnd;
-
-  const _ProgressScrubber({
-    required this.value,
-    required this.enabled,
-    required this.onChanged,
-    required this.onChangeEnd,
-  });
-
-  @override
-  State<_ProgressScrubber> createState() => _ProgressScrubberState();
-}
-
-class _ProgressScrubberState extends State<_ProgressScrubber> {
-  bool _dragging = false;
+  final String label;
+  final bool active;
+  const _ProgressRing({required this.value, required this.label, required this.active});
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        const hPad = 12.0;
-        final width = constraints.maxWidth - hPad * 2;
-        double at(double dx) => ((dx - hPad) / width).clamp(0.0, 1.0);
-        final x = hPad + width * widget.value;
-        final thumb = _dragging ? 16.0 : 10.0;
-
-        return GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTapUp: widget.enabled ? (d) => widget.onChangeEnd(at(d.localPosition.dx)) : null,
-          onHorizontalDragStart: widget.enabled
-              ? (d) {
-                  setState(() => _dragging = true);
-                  widget.onChanged(at(d.localPosition.dx));
-                }
-              : null,
-          onHorizontalDragUpdate: widget.enabled
-              ? (d) => widget.onChanged(at(d.localPosition.dx))
-              : null,
-          onHorizontalDragEnd: widget.enabled
-              ? (_) {
-                  setState(() => _dragging = false);
-                  widget.onChangeEnd(widget.value);
-                }
-              : null,
-          child: SizedBox(
-            height: 42,
-            child: Stack(
-              alignment: Alignment.centerLeft,
-              children: [
-                Positioned(
-                  left: hPad,
-                  right: hPad,
-                  height: _dragging ? 5 : 3,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: AppColors.fg.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(3),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  left: hPad,
-                  width: (x - hPad).clamp(0.0, width),
-                  height: _dragging ? 5 : 3,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: AppColors.accentLime,
-                      borderRadius: BorderRadius.circular(3),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  left: x - thumb / 2,
-                  width: thumb,
-                  height: thumb,
-                  child: AnimatedOpacity(
-                    duration: const Duration(milliseconds: 150),
-                    opacity: widget.enabled ? 1 : 0,
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: AppColors.accentLime,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(color: Colors.black.withValues(alpha: 0.4), blurRadius: 4),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+    return SizedBox(
+      width: 50,
+      height: 50,
+      child: CustomPaint(
+        painter: _RingPainter(
+          value: value,
+          track: AppColors.fg.withValues(alpha: 0.12),
+          fill: AppColors.accentLime,
+          stroke: active ? 5 : 4,
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: GoogleFonts.sora(
+              fontSize: label.length > 3 ? 10.5 : 12,
+              fontWeight: FontWeight.w600,
+              color: active ? AppColors.accentLime : AppColors.fg,
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
+}
+
+class _RingPainter extends CustomPainter {
+  final double value;
+  final Color track;
+  final Color fill;
+  final double stroke;
+  const _RingPainter({required this.value, required this.track, required this.fill, required this.stroke});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    final r = rect.deflate(stroke / 2 + 2);
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = stroke
+      ..strokeCap = StrokeCap.round;
+    canvas.drawArc(r, 0, math.pi * 2, false, paint..color = track);
+    if (value > 0) canvas.drawArc(r, -math.pi / 2, math.pi * 2 * value.clamp(0.0, 1.0), false, paint..color = fill);
+  }
+
+  @override
+  bool shouldRepaint(_RingPainter old) =>
+      old.value != value || old.track != track || old.fill != fill || old.stroke != stroke;
 }
 
 /// Places the selection menu by the selected word (above it, or below when

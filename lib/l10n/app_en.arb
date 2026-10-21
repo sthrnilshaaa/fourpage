@@ -742,10 +742,10 @@
   "bookInfoShelf": "Shelf",
   "bookInfoSubjects": "Subjects",
   "bookInfoDescription": "Description",
-  "pagesLeftShort": "{count, plural, =1{1 left} other{{count} left}}",
-  "@pagesLeftShort": {
+  "seekToPercent": "Release to go to {percent}%",
+  "@seekToPercent": {
     "placeholders": {
-      "count": {
+      "percent": {
         "type": "int"
       }
     }

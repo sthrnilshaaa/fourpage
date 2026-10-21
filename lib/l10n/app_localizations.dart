@@ -2344,11 +2344,11 @@ abstract class AppLocalizations {
   /// **'Description'**
   String get bookInfoDescription;
 
-  /// No description provided for @pagesLeftShort.
+  /// No description provided for @seekToPercent.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{1 left} other{{count} left}}'**
-  String pagesLeftShort(int count);
+  /// **'Release to go to {percent}%'**
+  String seekToPercent(int percent);
 }
 
 class _AppLocalizationsDelegate

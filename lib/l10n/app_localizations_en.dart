@@ -1353,13 +1353,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get bookInfoDescription => 'Description';
 
   @override
-  String pagesLeftShort(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count left',
-      one: '1 left',
-    );
-    return '$_temp0';
+  String seekToPercent(int percent) {
+    return 'Release to go to $percent%';
   }
 }
