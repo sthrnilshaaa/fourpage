@@ -2047,7 +2047,7 @@ class _SakuraReaderScreenState extends State<SakuraReaderScreen>
                 style: style,
               ),
             ),
-            Text('${(_progress * 100).round()}%', style: style),
+            Text(l10n.percentValue((_progress * 100).round()), style: style),
           ],
         ),
               ),

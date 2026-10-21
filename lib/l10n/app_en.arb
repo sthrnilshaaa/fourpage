@@ -758,5 +758,80 @@
   "removeNote": "Remove note",
   "pageBookmarked": "This page is bookmarked",
   "bookmarksSection": "Bookmarks",
-  "highlightsSection": "Highlights & notes"
+  "highlightsSection": "Highlights & notes",
+  "alreadyInLibrary": "“{title}” is already in your library",
+  "@alreadyInLibrary": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "alreadyInLibraryCount": "{count, plural, =1{1 book is already in your library} other{{count} books are already in your library}}",
+  "@alreadyInLibraryCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "noNewBooksInFolder": "No new books in this folder",
+  "resultsCount": "{count} Results",
+  "@resultsCount": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "percentValue": "{percent}%",
+  "@percentValue": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "fontSampleGlyph": "Aa",
+  "doneWithCount": "Done ({count})",
+  "@doneWithCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "fileSizeBytes": "{size} B",
+  "@fileSizeBytes": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "fileSizeKb": "{size} KB",
+  "@fileSizeKb": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "fileSizeMb": "{size} MB",
+  "@fileSizeMb": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "fileSizeGb": "{size} GB",
+  "@fileSizeGb": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "untitledBookFileName": "book"
 }

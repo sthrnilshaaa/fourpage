@@ -28,4 +28,14 @@ void main() {
     expect(universal!.apkUrl.toString(), endsWith('fourpages.apk'));
     expect(AppUpdater.parseGithubRelease(release('1.2.0', ['notes.txt']), currentVersion: '1.0.0', abis: []), isNull);
   });
+
+  test('release notes lose their Markdown', () {
+    const md = '## [1.0.2] - 2026-10-21\r\n\r\n### Added\n- **Undo** after `highlighting`\n* See [the guide](https://x.y)\n\n\n\nDone';
+    expect(
+      AppUpdater.plainNotes(md),
+      '[1.0.2] - 2026-10-21\n\nAdded\n• Undo after highlighting\n• See the guide\n\nDone',
+    );
+    expect(AppUpdater.plainNotes('   '), isNull);
+    expect(AppUpdater.plainNotes(null), isNull);
+  });
 }

@@ -125,7 +125,8 @@ Future<void> showMoveToShelfSheet(BuildContext context, BookItem book) async {
     _lib.moveBookToShelf(book, null);
     _snack(context, l10n.removedFromShelf(current!.name));
   } else if (picked != current?.id) {
-    final shelf = _lib.shelves.firstWhere((s) => s.id == picked);
+    final shelf = _lib.shelves.where((s) => s.id == picked).firstOrNull;
+    if (shelf == null) return; // deleted meanwhile
     _lib.moveBookToShelf(book, shelf);
     _snack(context, l10n.movedToShelf(shelf.name));
   }
@@ -350,7 +351,7 @@ class _AddBooksSheetState extends State<_AddBooksSheet> {
                   ),
                   TextButton(
                     onPressed: _picked.isEmpty ? null : () => Navigator.of(context).pop(_picked),
-                    child: Text('${l10n.done}${_picked.isEmpty ? '' : ' (${_picked.length})'}'),
+                    child: Text(_picked.isEmpty ? l10n.done : l10n.doneWithCount(_picked.length)),
                   ),
                 ],
               ),

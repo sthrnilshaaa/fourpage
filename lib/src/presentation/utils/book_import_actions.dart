@@ -77,19 +77,26 @@ class BookImportActions {
     if (files.isEmpty) return const ImportOutcome(cancelled: true);
 
     var imported = 0;
+    var duplicates = 0;
     final failures = <String>[];
     String? lastTitle;
+    String? duplicateTitle;
     for (final file in files) {
       try {
         final bytes = await file.readAsBytes();
         if (bytes.isEmpty) throw UnsupportedDocumentException(file.name, UnsupportedReason.emptyFile);
-        final item = await LibraryController.instance.addDocument(
+        final result = await LibraryController.instance.importDocument(
           fileName: file.name,
           bytes: bytes,
           folderPath: file.path != null ? File(file.path!).parent.path : null,
         );
-        lastTitle = item.publication.metadata.title;
-        imported++;
+        if (result.added) {
+          lastTitle = result.item.publication.metadata.title;
+          imported++;
+        } else {
+          duplicateTitle = result.item.publication.metadata.title;
+          duplicates++;
+        }
       } on UnsupportedDocumentException catch (e) {
         failures.add('${e.fileName}: ${describeUnsupported(e.reason)}');
       } catch (e) {
@@ -101,6 +108,12 @@ class BookImportActions {
       _show(messenger, imported == 1 ? l10n.addedBook(lastTitle ?? '') : l10n.addedBooks(imported));
     } else if (imported > 0) {
       _show(messenger, l10n.addedWithFailures(imported, failures.length, failures.first), warn: true);
+    } else if (duplicates > 0 && failures.isEmpty) {
+      _show(
+        messenger,
+        duplicates == 1 ? l10n.alreadyInLibrary(duplicateTitle ?? '') : l10n.alreadyInLibraryCount(duplicates),
+        warn: true,
+      );
     } else {
       _show(messenger, failures.isEmpty ? l10n.nothingImported : failures.first, error: true);
     }
@@ -119,10 +132,18 @@ class BookImportActions {
     }
     if (folder == null || folder.isEmpty) return const ImportOutcome(cancelled: true);
     try {
-      final count = await LibraryController.instance.scanAndImportFolder(folder);
+      final lib = LibraryController.instance;
+      final before = lib.books.length;
+      final known = lib.scannedFolders.contains(folder);
+      final count = await lib.scanAndImportFolder(folder);
+      // Nothing new but books were already there from this folder: say so,
+      // rather than "no books in this folder".
+      final hadBooks = known || lib.books.any((b) => b.folderPath == folder) || lib.books.length > before;
       _show(
         messenger,
-        count == 0 ? l10n.noBooksInFolder(supportedFormatsLabel) : l10n.addedFromFolder(count),
+        count > 0
+            ? l10n.addedFromFolder(count)
+            : (hadBooks ? l10n.noNewBooksInFolder : l10n.noBooksInFolder(supportedFormatsLabel)),
         warn: count == 0,
       );
       return ImportOutcome(imported: count);

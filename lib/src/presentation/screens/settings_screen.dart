@@ -175,19 +175,22 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
   Future<void> _share() => SharePlus.instance.share(ShareParams(text: l10n.shareMessage(_storeUrl)));
 
   Future<void> _rescan(String folder) async {
+    final lib = LibraryController.instance;
+    if (lib.isScanning(folder)) return;
     if (!FolderTree.isTreeUri(folder) && !await StorageAccess.ensureFolderAccess(context)) return;
+    if (!mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
     final int count;
     try {
-      count = await LibraryController.instance.scanAndImportFolder(folder);
+      count = await lib.scanAndImportFolder(folder);
     } on FolderScanPermissionException {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.thisFolderCanTBeRead)));
+      messenger.showSnackBar(SnackBar(content: Text(l10n.thisFolderCanTBeRead)));
+      return;
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.folderScanError('$e'))));
       return;
     }
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(count == 0 ? l10n.noEpubBooksFoundInThis : l10n.importedBooks(count))),
-      );
-    }
+    messenger.showSnackBar(SnackBar(content: Text(count == 0 ? l10n.noNewBooksInFolder : l10n.importedBooks(count))));
   }
 
   @override
@@ -567,15 +570,25 @@ class _SettingsScreenState extends State<SettingsScreen> with WidgetsBindingObse
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  IconButton(
-                    tooltip: l10n.scanAgain,
-                    icon: Icon(Icons.refresh_rounded, color: AppColors.fgMuted),
-                    onPressed: () => _rescan(folder),
-                  ),
+                  if (lib.isScanning(folder))
+                    Padding(
+                      padding: const EdgeInsets.all(14),
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.accentLime),
+                      ),
+                    )
+                  else
+                    IconButton(
+                      tooltip: l10n.scanAgain,
+                      icon: Icon(Icons.refresh_rounded, color: AppColors.fgMuted),
+                      onPressed: () => _rescan(folder),
+                    ),
                   IconButton(
                     tooltip: l10n.stopTrackingFolder,
                     icon: Icon(Icons.close_rounded, color: AppColors.fgMuted),
-                    onPressed: () => lib.removeScannedFolder(folder),
+                    onPressed: lib.isScanning(folder) ? null : () => lib.removeScannedFolder(folder),
                   ),
                 ],
               ),
@@ -939,7 +952,7 @@ class _ThemeSwatch extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: selected ? AppColors.accentLime : AppColors.fgHairline, width: selected ? 2.5 : 1),
             ),
-            child: Text('Aa', style: GoogleFonts.literata(fontSize: 18, color: foreground)),
+            child: Text(l10n.fontSampleGlyph, style: GoogleFonts.literata(fontSize: 18, color: foreground)),
           ),
           const SizedBox(height: 6),
           Text(name, style: GoogleFonts.sora(fontSize: 11, color: AppColors.fgSubtle)),

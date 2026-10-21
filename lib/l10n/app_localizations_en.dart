@@ -1383,4 +1383,64 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get highlightsSection => 'Highlights & notes';
+
+  @override
+  String alreadyInLibrary(String title) {
+    return '“$title” is already in your library';
+  }
+
+  @override
+  String alreadyInLibraryCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count books are already in your library',
+      one: '1 book is already in your library',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get noNewBooksInFolder => 'No new books in this folder';
+
+  @override
+  String resultsCount(String count) {
+    return '$count Results';
+  }
+
+  @override
+  String percentValue(int percent) {
+    return '$percent%';
+  }
+
+  @override
+  String get fontSampleGlyph => 'Aa';
+
+  @override
+  String doneWithCount(int count) {
+    return 'Done ($count)';
+  }
+
+  @override
+  String fileSizeBytes(String size) {
+    return '$size B';
+  }
+
+  @override
+  String fileSizeKb(String size) {
+    return '$size KB';
+  }
+
+  @override
+  String fileSizeMb(String size) {
+    return '$size MB';
+  }
+
+  @override
+  String fileSizeGb(String size) {
+    return '$size GB';
+  }
+
+  @override
+  String get untitledBookFileName => 'book';
 }

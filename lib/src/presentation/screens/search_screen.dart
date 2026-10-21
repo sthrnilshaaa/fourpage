@@ -142,7 +142,7 @@ class _SearchScreenState extends State<SearchScreen> {
               Padding(
                 padding: const EdgeInsets.fromLTRB(19, 0, 19, 14),
                 child: Text(
-                  '${matchingBooks.length.toString().padLeft(2, '0')} Results',
+                  l10n.resultsCount(matchingBooks.length.toString().padLeft(2, '0')),
                   style: GoogleFonts.sora(
                     fontSize: 15,
                     height: 23 / 15,

@@ -2279,7 +2279,7 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
                 style: style,
               ),
             ),
-            Text('${(_progress * 100).round()}%', style: style),
+            Text(l10n.percentValue((_progress * 100).round()), style: style),
           ],
         ),
               ),
@@ -2793,7 +2793,7 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
                     onHorizontalDragCancel: () => setState(() => _seekPreview = null),
                     child: Row(
                       children: [
-                        _ProgressRing(value: shown, label: '$percent%', active: seeking),
+                        _ProgressRing(value: shown, label: l10n.percentValue(percent), active: seeking),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Column(
@@ -2841,7 +2841,7 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
                 roundButton(
                   tooltip: l10n.readingSettings,
                   onTap: _showCustomizationSheet,
-                  child: Text('Aa', style: GoogleFonts.literata(fontSize: 16, color: AppColors.fg)),
+                  child: Text(l10n.fontSampleGlyph, style: GoogleFonts.literata(fontSize: 16, color: AppColors.fg)),
                 ),
               ],
             ),

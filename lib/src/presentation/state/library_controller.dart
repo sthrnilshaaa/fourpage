@@ -353,7 +353,17 @@ class LibraryController extends ChangeNotifier {
   /// they are, TXT/Markdown/HTML/DOCX converted to EPUB. Throws
   /// [UnsupportedDocumentException] for formats it can't read, including PDF
   /// on platforms without a PDF renderer.
-  Future<BookItem> addDocument({required String fileName, required List<int> bytes, String? folderPath}) async {
+  Future<BookItem> addDocument({required String fileName, required List<int> bytes, String? folderPath}) async =>
+      (await importDocument(fileName: fileName, bytes: bytes, folderPath: folderPath)).item;
+
+  /// Like [addDocument], and says whether the book was new ([added] is false
+  /// when it was already in the library; that entry is returned unchanged,
+  /// so its open reader, shelf and progress aren't disturbed).
+  Future<({BookItem item, bool added})> importDocument({
+    required String fileName,
+    required List<int> bytes,
+    String? folderPath,
+  }) async {
     final doc = DocumentConverter.convert(fileName, bytes);
     if (doc.kind == DocumentKind.pdf) {
       if (!isPdfSupportedPlatform) {
@@ -361,10 +371,26 @@ class LibraryController extends ChangeNotifier {
       }
       return _addPdf(fileName, doc.bytes, folderPath: folderPath);
     }
-    return addBookFromBytes(title: fileName, author: '', zipBytes: doc.bytes, folderPath: folderPath);
+    return _addEpub(doc.bytes, folderPath: folderPath);
   }
 
-  Future<BookItem> _addPdf(String fileName, List<int> bytes, {String? folderPath}) async {
+  /// The library entry with [id], or null.
+  BookItem? bookById(String id) {
+    for (final b in _books) {
+      if (b.publication.id == id) return b;
+    }
+    return null;
+  }
+
+  /// Already in the library: only record the folder it was found in.
+  ({BookItem item, bool added}) _existing(BookItem item, String? folderPath) {
+    if (folderPath != null && folderPath.isNotEmpty && item.folderPath == null) {
+      _rememberFolder(item.publication.id, folderPath);
+    }
+    return (item: item, added: false);
+  }
+
+  Future<({BookItem item, bool added})> _addPdf(String fileName, List<int> bytes, {String? folderPath}) async {
     final hash = HashUtils.sha256Bytes(bytes);
     final pub = Publication(
       id: hash.substring(0, 16),
@@ -375,6 +401,8 @@ class LibraryController extends ChangeNotifier {
       ),
       packagePath: '',
     );
+    final known = bookById(pub.id);
+    if (known != null) return _existing(known, folderPath);
     _importingPubIds.add(pub.id);
     try {
       await (await getBookFile(pub.id, kind: BookFormat.pdf)).writeAsBytes(bytes);
@@ -382,7 +410,7 @@ class LibraryController extends ChangeNotifier {
       _rememberFolder(pub.id, folderPath);
       final item = await _pdfItem(pub, folderPath: folderPath ?? _bookFolderMap[pub.id]);
       _upsert(item);
-      return item;
+      return (item: item, added: true);
     } finally {
       _importingPubIds.remove(pub.id);
     }
@@ -397,10 +425,21 @@ class LibraryController extends ChangeNotifier {
     Color startColor = const Color(0xFF0F766E),
     Color endColor = const Color(0xFF14B8A6),
     String? folderPath,
+  }) async =>
+      (await _addEpub(zipBytes, startColor: startColor, endColor: endColor, folderPath: folderPath)).item;
+
+  Future<({BookItem item, bool added})> _addEpub(
+    List<int> zipBytes, {
+    Color startColor = const Color(0xFF0F766E),
+    Color endColor = const Color(0xFF14B8A6),
+    String? folderPath,
   }) async {
-    final pub = await OpenPublicationUseCase(parser: EpubPublicationParser(), repository: _repository).execute(zipBytes);
+    final pub = await EpubPublicationParser().parsePublication(zipBytes);
+    final known = bookById(pub.id);
+    if (known != null) return _existing(known, folderPath);
     _importingPubIds.add(pub.id);
     try {
+      await _repository.savePublication(pub);
       try {
         await (await getBookFile(pub.id)).writeAsBytes(zipBytes);
       } catch (e) {
@@ -420,7 +459,7 @@ class LibraryController extends ChangeNotifier {
       );
       _upsert(item);
       OfflineSyncManager.instance.syncNow();
-      return item;
+      return (item: item, added: true);
     } finally {
       _importingPubIds.remove(pub.id);
     }
@@ -431,7 +470,24 @@ class LibraryController extends ChangeNotifier {
       DocumentConverter.supportedExtensions.where((e) => e != 'pdf' || isPdfSupportedPlatform).toList();
 
   /// Scans a folder recursively for supported documents and imports them.
-  Future<int> scanAndImportFolder(String folderPath, {Function(int current, int total)? onProgress}) async {
+  /// Returns how many books were new. A second call for a folder that is
+  /// still being scanned joins that scan instead of starting another.
+  Future<int> scanAndImportFolder(String folderPath, {Function(int current, int total)? onProgress}) {
+    final running = _scans[folderPath];
+    if (running != null) return running;
+    final scan = _scan(folderPath, onProgress: onProgress);
+    _scans[folderPath] = scan;
+    scan.whenComplete(() => _scans.remove(folderPath)).ignore();
+    notifyListeners();
+    return scan.whenComplete(notifyListeners);
+  }
+
+  final Map<String, Future<int>> _scans = {};
+
+  /// True while [folderPath] is being scanned.
+  bool isScanning(String folderPath) => _scans.containsKey(folderPath);
+
+  Future<int> _scan(String folderPath, {Function(int current, int total)? onProgress}) async {
     if (FolderTree.isTreeUri(folderPath)) return _scanAndImportTree(folderPath, onProgress: onProgress);
     final files = await FolderScanner.findFiles(Directory(folderPath), importableExtensions);
     _scannedFolders.add(folderPath);
@@ -443,8 +499,12 @@ class LibraryController extends ChangeNotifier {
       try {
         final bytes = await file.readAsBytes();
         if (bytes.isNotEmpty) {
-          await addDocument(fileName: file.path.split(Platform.pathSeparator).last, bytes: bytes, folderPath: folderPath);
-          importedCount++;
+          final r = await importDocument(
+            fileName: file.path.split(Platform.pathSeparator).last,
+            bytes: bytes,
+            folderPath: folderPath,
+          );
+          if (r.added) importedCount++;
         }
       } catch (e) {
         debugPrint('Error importing ${file.path}: $e');
@@ -469,8 +529,8 @@ class LibraryController extends ChangeNotifier {
       try {
         final bytes = await FolderTree.read(files[i].uri);
         if (bytes.isNotEmpty) {
-          await addDocument(fileName: files[i].name, bytes: bytes, folderPath: treeUri);
-          importedCount++;
+          final r = await importDocument(fileName: files[i].name, bytes: bytes, folderPath: treeUri);
+          if (r.added) importedCount++;
         }
       } catch (e) {
         debugPrint('Error importing ${files[i].name}: $e');
@@ -539,6 +599,10 @@ class LibraryController extends ChangeNotifier {
   /// Settings → Reset library: every book, its file and everything recorded
   /// about it is removed. App settings are kept.
   Future<void> resetLibrary() async {
+    for (final b in _books) {
+      await EpubUnpacker.remove(b.publication.id);
+    }
+    _lastOpened.clear();
     _books.clear();
     _scannedFolders.clear();
     _bookFolderMap.clear();

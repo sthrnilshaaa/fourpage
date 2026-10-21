@@ -2403,6 +2403,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Highlights & notes'**
   String get highlightsSection;
+
+  /// No description provided for @alreadyInLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'“{title}” is already in your library'**
+  String alreadyInLibrary(String title);
+
+  /// No description provided for @alreadyInLibraryCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 book is already in your library} other{{count} books are already in your library}}'**
+  String alreadyInLibraryCount(int count);
+
+  /// No description provided for @noNewBooksInFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'No new books in this folder'**
+  String get noNewBooksInFolder;
+
+  /// No description provided for @resultsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} Results'**
+  String resultsCount(String count);
+
+  /// No description provided for @percentValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}%'**
+  String percentValue(int percent);
+
+  /// No description provided for @fontSampleGlyph.
+  ///
+  /// In en, this message translates to:
+  /// **'Aa'**
+  String get fontSampleGlyph;
+
+  /// No description provided for @doneWithCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Done ({count})'**
+  String doneWithCount(int count);
+
+  /// No description provided for @fileSizeBytes.
+  ///
+  /// In en, this message translates to:
+  /// **'{size} B'**
+  String fileSizeBytes(String size);
+
+  /// No description provided for @fileSizeKb.
+  ///
+  /// In en, this message translates to:
+  /// **'{size} KB'**
+  String fileSizeKb(String size);
+
+  /// No description provided for @fileSizeMb.
+  ///
+  /// In en, this message translates to:
+  /// **'{size} MB'**
+  String fileSizeMb(String size);
+
+  /// No description provided for @fileSizeGb.
+  ///
+  /// In en, this message translates to:
+  /// **'{size} GB'**
+  String fileSizeGb(String size);
+
+  /// No description provided for @untitledBookFileName.
+  ///
+  /// In en, this message translates to:
+  /// **'book'**
+  String get untitledBookFileName;
 }
 
 class _AppLocalizationsDelegate

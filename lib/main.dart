@@ -66,7 +66,7 @@ class _AreadAppState extends State<AreadApp> {
   Widget build(BuildContext context) {
     final light = AppThemeController.instance.isLight;
     return MaterialApp(
-      title: 'Fourpages',
+      title: AppConstants.appName,
       debugShowCheckedModeBanner: false,
       theme: light ? AppTheme.lightTheme : AppTheme.darkTheme,
       localizationsDelegates: AppLocalizations.localizationsDelegates,

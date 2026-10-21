@@ -416,7 +416,7 @@ class _ReaderScreenState extends State<ReaderScreen> with ReaderUsageMixin {
             children: [
               Expanded(child: ThinProgressBar(value: book)),
               const SizedBox(width: 16),
-              Text('${(book * 100).round()}%', style: GoogleFonts.sora(fontSize: 12, color: AppColors.figmaTextFaint)),
+              Text(l10n.percentValue((book * 100).round()), style: GoogleFonts.sora(fontSize: 12, color: AppColors.figmaTextFaint)),
             ],
           );
         },
@@ -451,7 +451,7 @@ class _ReaderScreenState extends State<ReaderScreen> with ReaderUsageMixin {
                     style: GoogleFonts.sora(fontSize: 13, color: AppColors.textFaint),
                   ),
                 ),
-                Text('$progress%', style: GoogleFonts.sora(fontSize: 13, color: AppColors.textFaint)),
+                Text(l10n.percentValue(progress), style: GoogleFonts.sora(fontSize: 13, color: AppColors.textFaint)),
               ],
             ),
           ),

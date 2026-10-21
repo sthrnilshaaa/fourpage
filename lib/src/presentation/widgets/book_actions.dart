@@ -33,21 +33,21 @@ Future<File> _bookFile(BookItem book) async {
 
 /// "1.4 MB" style size.
 String formatFileSize(int bytes) {
-  if (bytes < 1024) return '$bytes B';
-  const units = ['KB', 'MB', 'GB'];
+  if (bytes < 1024) return l10n.fileSizeBytes('$bytes');
+  final units = [l10n.fileSizeKb, l10n.fileSizeMb, l10n.fileSizeGb];
   var size = bytes / 1024;
   var unit = 0;
   while (size >= 1024 && unit < units.length - 1) {
     size /= 1024;
     unit++;
   }
-  return '${size.toStringAsFixed(size < 10 ? 1 : 0)} ${units[unit]}';
+  return units[unit](size.toStringAsFixed(size < 10 ? 1 : 0));
 }
 
 /// File names can't hold these characters on common file systems.
 String safeFileName(String title) {
   final cleaned = title.replaceAll(RegExp(r'[\\/:*?"<>|\x00-\x1F]'), ' ').replaceAll(RegExp(r'\s+'), ' ').trim();
-  if (cleaned.isEmpty) return 'book';
+  if (cleaned.isEmpty) return l10n.untitledBookFileName;
   return cleaned.length > 80 ? cleaned.substring(0, 80).trim() : cleaned;
 }
 

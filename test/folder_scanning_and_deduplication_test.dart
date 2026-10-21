@@ -116,6 +116,7 @@ void main() {
       );
 
       expect(item2.publication.id, pubId);
+      expect(identical(item2, item1), isTrue, reason: 'The existing entry is kept, not rebuilt');
       final countAfterSecond = controller.books.where((b) => b.publication.id == pubId).length;
       expect(countAfterSecond, 1, reason: 'Second import of same book must never produce double entries');
     });
@@ -154,7 +155,7 @@ void main() {
 
         // Rescanning the folder does not create duplicate entries
         final rescannedCount = await controller.scanAndImportFolder(tempDir.path);
-        expect(rescannedCount, 2);
+        expect(rescannedCount, 0, reason: 'Books already in the library are not counted as imported again');
 
         final folderBooksAfterRescan = controller.books.where((b) => b.folderPath == tempDir.path).toList();
         expect(folderBooksAfterRescan.length, 2, reason: 'Rescanning folder must never create double entries');

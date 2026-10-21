@@ -83,15 +83,24 @@ class AppUpdater {
 
   /// Newer version, or null when up to date. Throws [UpdateCheckException]
   /// when the check itself failed (offline, API error).
-  Future<AvailableUpdate?> check() async {
+  Future<AvailableUpdate?> check() {
+    // The startup check and a Settings tap at the same moment share one request.
+    return _checking ??= _check().whenComplete(() => _checking = null);
+  }
+
+  Future<AvailableUpdate?>? _checking;
+
+  Future<AvailableUpdate?> _check() async {
     final info = await this.info();
     if (info == null) return null;
-    await _settings.setString(_keyLastCheck, DateTime.now().toIso8601String());
-    return switch (info.channel) {
+    final update = await switch (info.channel) {
       UpdateChannel.github => _checkGithub(info),
       UpdateChannel.playstore => _checkPlay(),
-      UpdateChannel.none => null,
+      UpdateChannel.none => Future<AvailableUpdate?>.value(),
     };
+    // Only a check that worked counts: offline at startup means try again next time.
+    await _settings.setString(_keyLastCheck, DateTime.now().toIso8601String());
+    return update;
   }
 
   /// The once-a-day check run at startup: null when it isn't time yet, the
@@ -200,10 +209,28 @@ class AppUpdater {
     return AvailableUpdate(
       channel: UpdateChannel.github,
       version: tag.replaceFirst(RegExp(r'^[vV]'), ''),
-      notes: (json['body'] as String?)?.trim(),
+      notes: plainNotes(json['body'] as String?),
       apkUrl: Uri.parse(pick['browser_download_url'] as String),
       apkSize: (pick['size'] as num?)?.toInt(),
     );
+  }
+
+  /// Release notes are Markdown; the dialog shows plain text.
+  @visibleForTesting
+  static String? plainNotes(String? markdown) {
+    if (markdown == null) return null;
+    final text = markdown
+        .replaceAll('\r\n', '\n')
+        .split('\n')
+        .map((line) => line
+            .replaceFirst(RegExp(r'^\s{0,3}#{1,6}\s*'), '')
+            .replaceFirstMapped(RegExp(r'^(\s*)[-*+]\s+'), (m) => '${m[1]}• ')
+            .replaceAllMapped(RegExp(r'\[([^\]]+)\]\([^)]+\)'), (m) => m[1]!)
+            .replaceAll(RegExp(r'\*\*|__|`'), ''))
+        .join('\n')
+        .replaceAll(RegExp(r'\n{3,}'), '\n\n')
+        .trim();
+    return text.isEmpty ? null : text;
   }
 
   /// Compares "v1.2.3"-style versions number by number (ignores "+build"
@@ -229,6 +256,11 @@ class AppUpdater {
   /// Downloads the update APK into cacheDir/updates (shared with the
   /// installer through the FileProvider in src/github/AndroidManifest.xml).
   /// [onProgress] gets 0..1, or null while the size is unknown.
+  HttpClient? _download;
+
+  /// Stops a download started with [downloadApk] (it then throws).
+  void cancelDownload() => _download?.close(force: true);
+
   Future<File> downloadApk(AvailableUpdate update, {void Function(double?)? onProgress}) async {
     if (!_githubUpdatesAllowed) throw UnsupportedError('Play build updates through Google Play');
     final dir = Directory('${(await getTemporaryDirectory()).path}/updates');
@@ -236,14 +268,17 @@ class AppUpdater {
     await dir.create(recursive: true);
     final file = File('${dir.path}/update-${update.version}.apk');
     final client = HttpClient()..connectionTimeout = const Duration(seconds: 15);
+    _download = client;
+    var complete = false;
     try {
-      final response = await (await client.getUrl(update.apkUrl!)).close();
+      final response = await (await client.getUrl(update.apkUrl!)).close().timeout(const Duration(seconds: 30));
       if (response.statusCode != HttpStatus.ok) throw HttpException('HTTP ${response.statusCode}');
       final total = response.contentLength > 0 ? response.contentLength : update.apkSize;
       final sink = file.openWrite();
       var received = 0;
       try {
-        await for (final chunk in response) {
+        // A stalled connection (no data for 30 s) fails instead of waiting forever.
+        await for (final chunk in response.timeout(const Duration(seconds: 30))) {
           sink.add(chunk);
           received += chunk.length;
           onProgress?.call(total != null && total > 0 ? received / total : null);
@@ -251,9 +286,16 @@ class AppUpdater {
       } finally {
         await sink.close();
       }
+      // A connection that closed early leaves a cut-off APK the installer can't read.
+      if (total != null && total > 0 && received != total) {
+        throw HttpException('Download incomplete ($received of $total bytes)');
+      }
+      complete = true;
       return file;
     } finally {
+      if (identical(_download, client)) _download = null;
       client.close(force: true);
+      if (!complete && await file.exists()) await file.delete().catchError((Object _) => file);
     }
   }
 
