@@ -6,6 +6,14 @@ All notable changes to Fourpage. The format follows
 
 ## [Unreleased]
 
+## [1.0.4] - 2026-10-21
+
+### Fixed
+- Page overview: the previous/next chapter boxes and the chapter swipe work
+  again in both reading modes, including books whose table of contents
+  doesn't list every chapter.
+- The next-chapter box in page mode is no longer hidden behind the footer.
+
 ## [1.0.3] - 2026-10-21
 
 ### Changed
@@ -82,7 +90,8 @@ First release.
 - Reader fonts: Literata, Lora, Source Serif, Atkinson Hyperlegible and
   IBM Plex Sans (all freely licensed).
 
-[Unreleased]: https://github.com/sthrnilshaaa/fourpage/compare/v1.0.3...HEAD
+[Unreleased]: https://github.com/sthrnilshaaa/fourpage/compare/v1.0.4...HEAD
+[1.0.4]: https://github.com/sthrnilshaaa/fourpage/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/sthrnilshaaa/fourpage/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/sthrnilshaaa/fourpage/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/sthrnilshaaa/fourpage/compare/v1.0.0...v1.0.1
