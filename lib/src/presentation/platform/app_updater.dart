@@ -55,7 +55,6 @@ class AppUpdater {
   static const _channel = MethodChannel('fourpages/app_update');
   static const _keyLastCheck = 'update_last_check';
   static const _keySkipped = 'update_skipped_version';
-  static const _autoCheckEvery = Duration(hours: 24);
 
   final _settings = AppSettingsRepository();
   AppBuildInfo? _info;
@@ -103,13 +102,11 @@ class AppUpdater {
     return update;
   }
 
-  /// The once-a-day check run at startup: null when it isn't time yet, the
-  /// check failed, or the found version was skipped by the user.
+  /// The check run each time the app opens: null when up to date, the check
+  /// failed, or the found version was skipped by the user.
   Future<AvailableUpdate?> autoCheck() async {
     if (!isSupported) return null;
     try {
-      final last = DateTime.tryParse(await _settings.getString(_keyLastCheck) ?? '');
-      if (last != null && DateTime.now().difference(last) < _autoCheckEvery) return null;
       final update = await check();
       if (update == null) return null;
       if (await _settings.getString(_keySkipped) == update.version) return null;

@@ -54,6 +54,17 @@ class SystemBridge {
   static Future<void> notifyNow({required String title, required String body, required String sound}) =>
       _call('notifyNow', {'title': title, 'body': body, 'sound': sound});
 
+  /// Posts the "update available" notification; tapping it opens the app with
+  /// the "update" launch action. False when notifications are off.
+  static Future<bool> notifyUpdate({required String title, required String body, required String channelName}) async =>
+      (await _call<bool>('notifyUpdate', {'title': title, 'body': body, 'channelName': channelName})) ?? false;
+
+  static Future<void> cancelUpdateNotification() => _call('cancelUpdateNotification');
+
+  /// What opened the app, once: "update" after tapping the update
+  /// notification, else null.
+  static Future<String?> takeLaunchAction() => _call<String>('takeLaunchAction');
+
   /// System sound picker. Returns (uri, display name), or null if cancelled.
   static Future<(String, String)?> pickNotificationSound(String current) async {
     final result = await _call<Map<dynamic, dynamic>>('pickNotificationSound', {'current': current});

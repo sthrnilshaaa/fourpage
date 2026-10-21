@@ -6,6 +6,23 @@ All notable changes to Fourpage. The format follows
 
 ## [Unreleased]
 
+## [1.0.3] - 2026-10-21
+
+### Changed
+- Renamed to Fourpage; the project now lives at github.com/sthrnilshaaa/fourpage.
+- New versions are announced with a notification each time the app opens;
+  tap it to update. With notifications off, the update dialog shows instead.
+
+### Fixed
+- Update downloads that stall or get cut off now fail cleanly instead of
+  hanging or handing a broken file to the installer; downloads can be
+  cancelled; an offline check no longer delays the next check by a day;
+  release notes show without Markdown symbols.
+- Importing a book that is already in the library keeps your copy and says
+  so; rescanning a folder counts only new books.
+- Scanning a folder shows progress, can't be started twice, and reports errors.
+- Reset library also removes leftover book files and Recent Reading.
+
 ## [1.0.2] - 2026-10-21
 
 ### Added
@@ -65,7 +82,8 @@ First release.
 - Reader fonts: Literata, Lora, Source Serif, Atkinson Hyperlegible and
   IBM Plex Sans (all freely licensed).
 
-[Unreleased]: https://github.com/sthrnilshaaa/fourpage/compare/v1.0.2...HEAD
+[Unreleased]: https://github.com/sthrnilshaaa/fourpage/compare/v1.0.3...HEAD
+[1.0.3]: https://github.com/sthrnilshaaa/fourpage/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/sthrnilshaaa/fourpage/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/sthrnilshaaa/fourpage/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/sthrnilshaaa/fourpage/releases/tag/v1.0.0

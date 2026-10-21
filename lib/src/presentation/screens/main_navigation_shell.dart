@@ -33,12 +33,17 @@ class MainNavigationShellState extends State<MainNavigationShell> {
   bool _searchOpen = false;
 
   Timer? _updateCheck;
+  AppLifecycleListener? _lifecycle;
 
   @override
   void initState() {
     super.initState();
-    // Once a day, a few seconds after start so it doesn't compete with
-    // the library loading.
+    // Once per app open, a few seconds after start so it doesn't compete
+    // with the library loading.
+    _lifecycle = AppLifecycleListener(onResume: () {
+      // Tapped the update notification while the app was in the background.
+      if (mounted) handleUpdateNotificationTap(context);
+    });
     _updateCheck = Timer(const Duration(seconds: 4), () {
       if (mounted) autoCheckForUpdates(context);
     });
@@ -47,6 +52,7 @@ class MainNavigationShellState extends State<MainNavigationShell> {
   @override
   void dispose() {
     _updateCheck?.cancel();
+    _lifecycle?.dispose();
     super.dispose();
   }
 

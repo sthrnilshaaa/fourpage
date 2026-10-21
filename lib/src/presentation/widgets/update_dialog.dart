@@ -9,6 +9,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../l10n/l10n.dart';
 import '../platform/app_updater.dart';
+import '../platform/system_bridge.dart';
 import '../theme/app_colors.dart';
 
 /// Settings › Check for updates: checks now and says what it found.
@@ -29,13 +30,49 @@ Future<void> checkForUpdatesNow(BuildContext context) async {
   await showUpdateDialog(context, update, offerSkip: false);
 }
 
-/// Startup: the once-a-day check, quiet unless there's something new.
+// Once per app open: the startup check posts at most one notification.
+bool _notifiedThisLaunch = false;
+AvailableUpdate? _lastFound;
+
+/// App start: checks for a new version and announces it with a
+/// notification (tap it to update). When notifications are off the dialog
+/// shows instead, so an update is never missed. Opened from that
+/// notification: goes straight to the update dialog.
 Future<void> autoCheckForUpdates(BuildContext context) async {
+  if (await handleUpdateNotificationTap(context)) return;
+  if (_notifiedThisLaunch) return;
+  _notifiedThisLaunch = true;
   final update = await AppUpdater.instance.autoCheck();
-  if (update != null && context.mounted) await showUpdateDialog(context, update);
+  if (update == null || !context.mounted) return;
+  _lastFound = update;
+  final posted = await SystemBridge.notifyUpdate(
+    title: l10n.updateAvailableTitle,
+    body: l10n.updateNotificationBody(update.version),
+    channelName: l10n.updateNotificationChannel,
+  );
+  if (!posted && context.mounted) await showUpdateDialog(context, update);
+}
+
+/// When the app was opened by tapping the update notification, shows the
+/// update dialog and returns true.
+Future<bool> handleUpdateNotificationTap(BuildContext context) async {
+  if (await SystemBridge.takeLaunchAction() != 'update') return false;
+  var update = _lastFound;
+  if (update == null) {
+    try {
+      update = await AppUpdater.instance.check();
+    } catch (_) {
+      update = null;
+    }
+  }
+  if (update == null || !context.mounted) return true;
+  _notifiedThisLaunch = true;
+  await showUpdateDialog(context, update);
+  return true;
 }
 
 Future<void> showUpdateDialog(BuildContext context, AvailableUpdate update, {bool offerSkip = true}) async {
+  SystemBridge.cancelUpdateNotification();
   if (update.channel == UpdateChannel.playstore) {
     // Play shows its own screen with notes and progress.
     await AppUpdater.instance.startPlayUpdate();

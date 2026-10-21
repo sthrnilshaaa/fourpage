@@ -31,6 +31,11 @@ class SystemChannel(private val activity: Activity, messenger: BinaryMessenger) 
         const val NOTIFICATION_PERMISSION_REQUEST = 4202
         private const val REMINDER_ID = 1001
         private const val BREAK_ID = 1002
+        private const val UPDATE_ID = 1003
+        private const val UPDATES_CHANNEL = "app_updates"
+
+        /** Intent extra on the update notification; read by Dart via takeLaunchAction. */
+        const val EXTRA_ACTION = "fourpage_action"
 
         /** One channel per sound: a channel's sound can't change after creation. */
         fun channelFor(context: Context, sound: String): String {
@@ -105,6 +110,47 @@ class SystemChannel(private val activity: Activity, messenger: BinaryMessenger) 
         }
     }
 
+    /** Set when the app was opened from one of our notifications (e.g. "update"). */
+    private var launchAction: String? = activity.intent?.getStringExtra(EXTRA_ACTION)
+
+    fun onNewIntent(intent: Intent) {
+        intent.getStringExtra(EXTRA_ACTION)?.let { launchAction = it }
+    }
+
+    /** "Update available": own channel, opens the app with the update action. */
+    private fun postUpdate(title: String, body: String, channelName: String): Boolean {
+        val manager = NotificationManagerCompat.from(context)
+        if (!manager.areNotificationsEnabled()) return false
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val system = context.getSystemService(NotificationManager::class.java)
+            val channel = NotificationChannel(UPDATES_CHANNEL, channelName, NotificationManager.IMPORTANCE_DEFAULT)
+            system.createNotificationChannel(channel) // updates the name if it changed
+            if (system.getNotificationChannel(UPDATES_CHANNEL)?.importance == NotificationManager.IMPORTANCE_NONE) return false
+        }
+        val open = PendingIntent.getActivity(
+            context, UPDATE_ID,
+            Intent(context, MainActivity::class.java)
+                .putExtra(EXTRA_ACTION, "update")
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val notification = NotificationCompat.Builder(context, UPDATES_CHANNEL)
+            .setSmallIcon(R.drawable.ic_stat_book)
+            .setContentTitle(title)
+            .setContentText(body)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(body))
+            .setContentIntent(open)
+            .setAutoCancel(true)
+            .setOnlyAlertOnce(true)
+            .build()
+        return try {
+            manager.notify(UPDATE_ID, notification)
+            true
+        } catch (e: SecurityException) {
+            false
+        }
+    }
+
     private var pendingSoundResult: MethodChannel.Result? = null
     private var pendingPermissionResult: MethodChannel.Result? = null
     private val context: Context get() = activity.applicationContext
@@ -154,6 +200,21 @@ class SystemChannel(private val activity: Activity, messenger: BinaryMessenger) 
                         call.argument<String>("sound") ?: "default",
                     )
                     result.success(null)
+                }
+                "notifyUpdate" -> result.success(
+                    postUpdate(
+                        call.argument<String>("title") ?: "",
+                        call.argument<String>("body") ?: "",
+                        call.argument<String>("channelName") ?: "",
+                    ),
+                )
+                "cancelUpdateNotification" -> {
+                    NotificationManagerCompat.from(context).cancel(UPDATE_ID)
+                    result.success(null)
+                }
+                "takeLaunchAction" -> {
+                    result.success(launchAction)
+                    launchAction = null
                 }
                 "pickNotificationSound" -> {
                     pendingSoundResult = result

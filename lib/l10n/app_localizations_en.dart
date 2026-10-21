@@ -1443,4 +1443,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get untitledBookFileName => 'book';
+
+  @override
+  String updateNotificationBody(String version) {
+    return 'Version $version is ready. Tap to update.';
+  }
+
+  @override
+  String get updateNotificationChannel => 'App updates';
 }

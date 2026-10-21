@@ -2475,6 +2475,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'book'**
   String get untitledBookFileName;
+
+  /// No description provided for @updateNotificationBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version} is ready. Tap to update.'**
+  String updateNotificationBody(String version);
+
+  /// No description provided for @updateNotificationChannel.
+  ///
+  /// In en, this message translates to:
+  /// **'App updates'**
+  String get updateNotificationChannel;
 }
 
 class _AppLocalizationsDelegate

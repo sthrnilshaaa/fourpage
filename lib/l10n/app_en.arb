@@ -833,5 +833,14 @@
       }
     }
   },
-  "untitledBookFileName": "book"
+  "untitledBookFileName": "book",
+  "updateNotificationBody": "Version {version} is ready. Tap to update.",
+  "@updateNotificationBody": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateNotificationChannel": "App updates"
 }
