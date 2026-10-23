@@ -24,6 +24,7 @@ import '../native_reader/native_reader_engine.dart';
 import '../native_reader/renderer_choice.dart';
 import 'sakura_reader_screen.dart';
 import '../platform/app_haptics.dart';
+import '../platform/reader_system_bars.dart';
 import '../state/app_preferences.dart';
 import '../state/reader_usage_mixin.dart';
 import '../state/library_controller.dart';
@@ -133,6 +134,9 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
   /// reader tapped into focus mode; the floating bars and zoom-out stay off.
   bool _focusMode = false;
   bool _panes = false;
+
+  /// Whether the status and navigation bars are hidden (null: not set yet).
+  bool? _systemBarsHidden;
   final _readerFocus = FocusNode(debugLabel: 'native-reader');
   Timer? _topHideTimer;
   Timer? _bottomHideTimer;
@@ -256,6 +260,7 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
     });
     AppThemeController.instance.addListener(_onAppLook);
     AppPreferences.instance.addListener(_onAppLook);
+    ReaderSystemBars.listen(_onSystemBarsShown);
   }
 
   /// A book nobody has customised yet opens with today's defaults (they follow the app theme).
@@ -523,9 +528,33 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
   void _toggleControls() {
     if (_panes) {
       setState(() => _focusMode = !_focusMode);
+      _syncSystemBars();
       return;
     }
     _setControls(!_controlsVisible);
+  }
+
+  /// The status and navigation bars come and go with the reader controls
+  /// (with the panes on large screens, they hide only in focus mode).
+  void _syncSystemBars() {
+    if (!mounted) return;
+    final hide = _panes ? _focusMode : !_controlsVisible;
+    if (hide == _systemBarsHidden) return;
+    _systemBarsHidden = hide;
+    hide ? ReaderSystemBars.hide() : ReaderSystemBars.show();
+  }
+
+  /// A swipe in from the screen edge showed the system bars: bring the
+  /// reader controls with them, so both hide again together.
+  void _onSystemBarsShown() {
+    if (!mounted || _systemBarsHidden != true) return;
+    _systemBarsHidden = false;
+    if (!(ModalRoute.of(context)?.isCurrent ?? true)) return;
+    if (_panes) {
+      setState(() => _focusMode = false);
+    } else {
+      _setControls(true);
+    }
   }
 
   void _setControls(bool visible) {
@@ -536,6 +565,7 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
       _topVisible = visible;
       _bottomVisible = visible;
     });
+    _syncSystemBars();
     if (visible) {
       _enterZoom();
       _scheduleAutoHide();
@@ -581,6 +611,7 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
         _bottomVisible = false;
       }
     });
+    _syncSystemBars();
     if (!_controlsVisible) _exitZoom();
   }
 
@@ -588,6 +619,9 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
   void dispose() {
     AppThemeController.instance.removeListener(_onAppLook);
     AppPreferences.instance.removeListener(_onAppLook);
+    // Back to the library: the system bars return for the rest of the app.
+    ReaderSystemBars.stopListening();
+    ReaderSystemBars.show();
     _topHideTimer?.cancel();
     _bottomHideTimer?.cancel();
     _loadTimeoutTimer?.cancel();
@@ -1938,14 +1972,18 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
       _panes = panes;
       // Into expanded: drop the floating bars (and their zoom-out).
       if (panes && _controlsVisible) WidgetsBinding.instance.addPostFrameCallback((_) => _setControls(false));
+      WidgetsBinding.instance.addPostFrameCallback((_) => _syncSystemBars());
     }
     final prefs = AppPreferences.instance;
     final bookView = Builder(
         builder: (context) {
           if (_openError != null) return _buildLoadFailure(context, l10n.couldNotOpenBookFile(_openError!));
           final media = MediaQuery.of(context);
-          final insetTop = media.padding.top;
-          final insetBottom = media.padding.bottom;
+          // Fixed while the system bars come and go, so the book isn't laid
+          // out again on every tap; the bars draw over the page when shown.
+          final insets = ReaderSystemBars.pageInsets(media);
+          final insetTop = insets.top;
+          final insetBottom = insets.bottom;
           final pageBottom = insetBottom + _footerHeight;
           _pageWidth = media.size.width;
           final area = Size(media.size.width, media.size.height - insetTop - pageBottom);
