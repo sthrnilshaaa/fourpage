@@ -6,6 +6,13 @@ All notable changes to Fourpage. The format follows
 
 ## [Unreleased]
 
+## [1.0.5] - 2026-10-23
+
+### Changed
+- Reading is now full screen: the status bar and navigation bar hide with
+  the reader controls and come back together with them (tap the page, or
+  swipe in from the screen edge). The page uses the freed space.
+
 ## [1.0.4] - 2026-10-21
 
 ### Fixed
