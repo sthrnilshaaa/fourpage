@@ -1414,6 +1414,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String pageOfTotal(int current, int total) {
+    return '$current / $total';
+  }
+
+  @override
+  String get titleSeparator => ' / ';
+
+  @override
   String get fontSampleGlyph => 'Aa';
 
   @override

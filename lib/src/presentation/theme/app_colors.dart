@@ -43,6 +43,8 @@ class AppColors {
   // Figma screen tokens
   static Color get figmaBackground => _pick(const Color(0xFF0D0C0B), const Color(0xFFF6F6F3)); // Home/Library/Saved
   static Color get figmaReaderBackground => _pick(const Color(0xFF121211), const Color(0xFFFAFAF8)); // opened_book chrome
+  /// Behind the page overview (zoomed-out pages, its header and progress bar).
+  static Color get overviewBackground => _pick(Colors.black, const Color(0xFFFAFAF8));
   static Color get figmaSurface => _pick(const Color(0xFF161616), const Color(0xFFFFFFFF)); // bars, pills, sheets
   static Color get figmaHeaderTop => _pick(const Color(0xFF151515), const Color(0xFFFFFFFF)); // header gradient start
   static Color get figmaDivider => fg.withValues(alpha: 0.05);

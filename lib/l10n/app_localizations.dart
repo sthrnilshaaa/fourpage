@@ -2434,6 +2434,18 @@ abstract class AppLocalizations {
   /// **'{percent}%'**
   String percentValue(int percent);
 
+  /// No description provided for @pageOfTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'{current} / {total}'**
+  String pageOfTotal(int current, int total);
+
+  /// No description provided for @titleSeparator.
+  ///
+  /// In en, this message translates to:
+  /// **' / '**
+  String get titleSeparator;
+
   /// No description provided for @fontSampleGlyph.
   ///
   /// In en, this message translates to:

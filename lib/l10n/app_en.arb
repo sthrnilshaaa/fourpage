@@ -792,6 +792,18 @@
       }
     }
   },
+  "pageOfTotal": "{current} / {total}",
+  "@pageOfTotal": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "titleSeparator": " / ",
   "fontSampleGlyph": "Aa",
   "doneWithCount": "Done ({count})",
   "@doneWithCount": {

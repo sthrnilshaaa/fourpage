@@ -181,6 +181,8 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
   double _pageWidth = 360;
 
   int _pagesLeft = -1;
+  // Current page across the whole book (0-based); -1 = not known yet.
+  int _globalPage = -1;
   // Where the current page's text ends in its chapter (chars); -1 = not known yet.
   int _pageEnd = -1;
   bool _bookmarkBusy = false;
@@ -467,6 +469,7 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
       _lastLocator = loc;
       if (_locationsReady) _progress = loc.totalProgression;
       _pagesLeft = loc.pagesLeft ?? -1;
+      _globalPage = loc.globalPage ?? -1;
     });
     if (p.resourceIndex != _chapterInfoFor) {
       _chapterInfoFor = p.resourceIndex;
@@ -2298,11 +2301,11 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
     final pad = AppPreferences.instance.readerPadding.clamp(12.0, 48.0);
     final showPages = _paginated && _pagesLeft >= 0;
     // While the progress bar shows, the line moves up above it instead of
-    // hiding behind it (bar: 24 from the bottom, [_barHeight] tall).
+    // hiding behind it (bar: [_barBottom] from the bottom, [_barHeight] tall).
     final lifted = _bottomVisible && _epubReady && !_zoomed;
     // The strip under the page grows (in the page colour) so the line sits
     // above the bar; it shrinks back when the bar hides.
-    final textBottom = lifted ? math.max(insetBottom, 24.0 + _barHeight + 6) : insetBottom;
+    final textBottom = lifted ? math.max(insetBottom, _barBottom + _barHeight + 6) : insetBottom;
     return AnimatedPositioned(
       duration: _chromeDuration,
       curve: Curves.easeOutCubic,
@@ -2311,8 +2314,11 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
       bottom: 0,
       height: textBottom + _footerHeight,
       child: IgnorePointer(
-        child: ColoredBox(
-          color: SakuraEpubMapper.pageColorFor(_theme),
+        // Page colour on the single page; black in the page overview, where
+        // it would otherwise show as a grey band under the progress bar.
+        child: AnimatedContainer(
+          duration: _chromeDuration,
+          color: _zoomed ? AppColors.overviewBackground : SakuraEpubMapper.pageColorFor(_theme),
           child: Align(
             alignment: Alignment.topCenter,
             // Hidden in the page overview (the dock shows the same); back
@@ -2389,10 +2395,10 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
                   clipBehavior: Clip.antiAlias,
                   decoration: BoxDecoration(
                     color: pageColor,
-                    // 8px corners on screen; the card is drawn full size
+                    // 18px corners on screen; the card is drawn full size
                     // and scaled down, so the radius is scaled up to match.
                     borderRadius: BorderRadius.circular(
-                      !current || _zoomShrunk ? 8 / _stripScale : 0,
+                      !current || _zoomShrunk ? 18 / _stripScale : 0,
                     ),
                     boxShadow: [
                       BoxShadow(
@@ -2474,12 +2480,18 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
         onHorizontalDragUpdate: !vertical && _zoomShrunk ? dragUpdate : null,
         onHorizontalDragEnd: !vertical && _zoomShrunk ? dragEnd : null,
         child: ColoredBox(
-          color: AppColors.figmaReaderBackground,
+          color: AppColors.overviewBackground,
           child: ValueListenableBuilder<double>(
             valueListenable: _chapterDragN,
             builder: (context, drag, _) {
               final armedPrev = drag > _chapterDragCommit;
               final armedNext = drag < -_chapterDragCommit;
+              // The boxes stay hidden; they fade in only while a chapter drag pulls toward them.
+              final showPrev = (drag / (_chapterDragCommit * 0.6)).clamp(0.0, 1.0);
+              final showNext = (-drag / (_chapterDragCommit * 0.6)).clamp(0.0, 1.0);
+              Widget reveal(double amount, Widget child) => IgnorePointer(
+                child: Opacity(opacity: amount, child: child),
+              );
               return Stack(
                 children: [
                   Positioned.fill(
@@ -2489,41 +2501,63 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
                     ),
                   ),
                   if (_zoomShrunk && vertical) ...[
-                    if (prevTitle != null)
+                    if (prevTitle != null && showPrev > 0)
                       Positioned(
                         left: 24,
                         right: 24,
                         top: headerH + 10,
-                        child: _chapterBox(prevTitle, up: true, armed: armedPrev, onTap: () => _goChapterInZoom(-1)),
+                        child: reveal(
+                          showPrev,
+                          _chapterBox(prevTitle, up: true, armed: armedPrev, onTap: () => _goChapterInZoom(-1)),
+                        ),
                       ),
-                    if (nextTitle != null)
+                    if (nextTitle != null && showNext > 0)
                       Positioned(
                         left: 24,
                         right: 24,
-                        // Above the footer dock (24 from the screen bottom, _barHeight tall).
-                        bottom: math.max(60.0, 24 + _barHeight + 12 - pageBottom),
-                        child: _chapterBox(nextTitle, up: false, armed: armedNext, onTap: () => _goChapterInZoom(1)),
+                        // Above the progress bar and its bubble.
+                        bottom: math.max(60.0, _barBottom + _barHeight + 40 - pageBottom),
+                        child: reveal(
+                          showNext,
+                          _chapterBox(nextTitle, up: false, armed: armedNext, onTap: () => _goChapterInZoom(1)),
+                        ),
                       ),
                   ],
                   if (_zoomShrunk && !vertical) ...[
-                    if (prevTitle != null)
+                    if (prevTitle != null && showPrev > 0)
                       Positioned(
                         left: 6,
                         top: pageH * 0.3,
                         bottom: pageH * 0.3,
-                        child: RotatedBox(
-                          quarterTurns: 3,
-                          child: _chapterBox(prevTitle, up: true, armed: armedPrev, onTap: () => _goChapterInZoom(-1)),
+                        child: reveal(
+                          showPrev,
+                          RotatedBox(
+                            quarterTurns: 3,
+                            child: _chapterBox(
+                              prevTitle,
+                              up: true,
+                              armed: armedPrev,
+                              onTap: () => _goChapterInZoom(-1),
+                            ),
+                          ),
                         ),
                       ),
-                    if (nextTitle != null)
+                    if (nextTitle != null && showNext > 0)
                       Positioned(
                         right: 6,
                         top: pageH * 0.3,
                         bottom: pageH * 0.3,
-                        child: RotatedBox(
-                          quarterTurns: 1,
-                          child: _chapterBox(nextTitle, up: false, armed: armedNext, onTap: () => _goChapterInZoom(1)),
+                        child: reveal(
+                          showNext,
+                          RotatedBox(
+                            quarterTurns: 1,
+                            child: _chapterBox(
+                              nextTitle,
+                              up: false,
+                              armed: armedNext,
+                              onTap: () => _goChapterInZoom(1),
+                            ),
+                          ),
                         ),
                       ),
                   ],
@@ -2684,7 +2718,7 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
       right: 0,
       child: Container(
         key: _topBarKey,
-        color: AppColors.figmaReaderBackground,
+        color: AppColors.overviewBackground,
         child: SafeArea(
           bottom: false,
           child: Padding(
@@ -2765,144 +2799,153 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
     }
   }
 
-  /// Height of the footer dock (see [_buildBottomBar]).
-  static const double _barHeight = 68;
+  /// Height of the footer progress bar (see [_buildBottomBar]).
+  static const double _barHeight = 32;
 
-  /// The footer dock: a progress ring with the percentage, the chapter name
-  /// with pages left, then Bookmark and reading settings. Drag sideways on
-  /// the ring or the title to seek; tap the title to open Chapters & Notes.
+  /// Gap between the progress bar and the bottom of the screen.
+  static const double _barBottom = 34;
+
+  /// The page overview's progress bar: "book / chapter" on the left, "page /
+  /// total" on the right, filled up to where you are, with the percentage in
+  /// a small bubble over the fill's edge. Drag sideways to seek; tap to open
+  /// Chapters & Notes.
   Widget _buildBottomBar(BuildContext context) {
     final seeking = _seekPreview != null;
     final shown = (_seekPreview ?? _progress).clamp(0.0, 1.0);
     final percent = (shown * 100).round();
-    final chapter = _chapterTitle('current') ?? widget.book.publication.metadata.title;
-    final String subtitle;
-    if (seeking) {
-      subtitle = l10n.seekToPercent(percent);
-    } else if (_paginated && _pagesLeft >= 0) {
-      subtitle = l10n.pagesLeftInBook(_pagesLeft);
+    final book = widget.book.publication.metadata.title;
+    final chapterTitle = _chapterTitle('current');
+    final chapter = chapterTitle == book ? null : chapterTitle;
+    final total = _globalPage >= 0 && _pagesLeft >= 0 ? _globalPage + _pagesLeft + 1 : -1;
+    final String position;
+    if (total <= 0) {
+      position = l10n.percentValue(percent);
     } else {
-      subtitle = l10n.percentRead(percent);
+      // While seeking, the page the drag would land on.
+      final page = seeking ? (shown * (total - 1)).round() + 1 : _globalPage + 1;
+      position = l10n.pageOfTotal(page, total);
     }
-    final dragWidth = MediaQuery.sizeOf(context).width - 32;
-    final bookmarked = _bookmarksHere.isNotEmpty;
-
-    void dragStart(DragStartDetails _) {
-      if (!_locationsReady) return;
-      _onUserActivity();
-      setState(() => _seekPreview = _progress.clamp(0.0, 1.0));
-    }
-
-    void dragUpdate(DragUpdateDetails d) {
-      final from = _seekPreview;
-      if (from == null) return;
-      _onUserActivity();
-      setState(() => _seekPreview = (from + d.delta.dx / dragWidth).clamp(0.0, 1.0));
-    }
-
-    void dragEnd(DragEndDetails _) {
-      final to = _seekPreview;
-      if (to != null) _seekTo(to);
-    }
-
-    Widget roundButton({required String tooltip, required VoidCallback onTap, required Widget child}) => Tooltip(
-      message: tooltip,
-      child: Material(
-        color: AppColors.fg.withValues(alpha: 0.06),
-        shape: const CircleBorder(),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: () {
-            _onUserActivity();
-            onTap();
-          },
-          child: SizedBox(width: 44, height: 44, child: Center(child: child)),
-        ),
-      ),
-    );
+    final textColor = AppColors.fg.withValues(alpha: 0.5);
+    final background = AppColors.overviewBackground;
+    // On black: bar #111, fill and bubble #191919.
+    final barColor = Color.alphaBlend(AppColors.fg.withValues(alpha: 0.067), background);
+    final fillColor = seeking
+        ? Color.alphaBlend(AppColors.accentLime.withValues(alpha: 0.12), barColor)
+        : Color.alphaBlend(AppColors.fg.withValues(alpha: 0.098), background);
+    final bubbleColor = Color.alphaBlend(AppColors.fg.withValues(alpha: 0.098), background);
+    const radius = 12.0;
+    const tipWidth = 80.0;
 
     return Positioned(
-      bottom: 24,
+      bottom: _barBottom,
       left: 16,
       right: 16,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(_barHeight / 2),
-        child: BackdropFilter(
-          filter: ui.ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-          child: Container(
-            height: _barHeight,
-            padding: const EdgeInsets.fromLTRB(9, 0, 8, 0),
-            decoration: BoxDecoration(
-              color: AppColors.pillSurface.withValues(alpha: 0.9),
-              borderRadius: BorderRadius.circular(_barHeight / 2),
-              border: Border.all(color: AppColors.fg.withValues(alpha: 0.1)),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: _showTocSheet,
-                    onHorizontalDragStart: dragStart,
-                    onHorizontalDragUpdate: dragUpdate,
-                    onHorizontalDragEnd: dragEnd,
-                    onHorizontalDragCancel: () => setState(() => _seekPreview = null),
-                    child: Row(
+      height: _barHeight,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.maxWidth;
+
+          void dragStart(DragStartDetails _) {
+            if (!_locationsReady) return;
+            _onUserActivity();
+            setState(() => _seekPreview = _progress.clamp(0.0, 1.0));
+          }
+
+          void dragUpdate(DragUpdateDetails d) {
+            final from = _seekPreview;
+            if (from == null) return;
+            _onUserActivity();
+            setState(() => _seekPreview = (from + d.delta.dx / width).clamp(0.0, 1.0));
+          }
+
+          void dragEnd(DragEndDetails _) {
+            final to = _seekPreview;
+            if (to != null) _seekTo(to);
+          }
+
+          // Bubble centre follows the fill's edge, kept clear of the bar's rounded ends.
+          final tipX = (width * shown).clamp(24.0, math.max(24.0, width - 24));
+          return Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Positioned.fill(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    _onUserActivity();
+                    _showTocSheet();
+                  },
+                  onHorizontalDragStart: dragStart,
+                  onHorizontalDragUpdate: dragUpdate,
+                  onHorizontalDragEnd: dragEnd,
+                  onHorizontalDragCancel: () => setState(() => _seekPreview = null),
+                  child: Container(
+                    clipBehavior: Clip.antiAlias,
+                    decoration: BoxDecoration(
+                      color: barColor,
+                      borderRadius: BorderRadius.circular(radius),
+                      border: Border.all(color: AppColors.fg.withValues(alpha: 0.06)),
+                    ),
+                    child: Stack(
                       children: [
-                        _ProgressRing(value: shown, label: l10n.percentValue(percent), active: seeking),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                chapter,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.sora(
-                                  fontSize: 13.5,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.fg,
+                        Positioned(
+                          left: 0,
+                          top: 0,
+                          bottom: 0,
+                          width: width * shown,
+                          child: ColoredBox(color: fillColor),
+                        ),
+                        Positioned.fill(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: _FitTitle(
+                                    book: book,
+                                    chapter: chapter,
+                                    separator: l10n.titleSeparator,
+                                    color: textColor,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 3),
-                              Text(
-                                subtitle,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.sora(
-                                  fontSize: 11.5,
-                                  color: seeking ? AppColors.accentLime : AppColors.textFaint,
+                                const SizedBox(width: 12),
+                                Text(
+                                  position,
+                                  style: GoogleFonts.sora(
+                                    fontSize: 13,
+                                    color: seeking ? AppColors.accentLime : textColor,
+                                    fontFeatures: const [ui.FontFeature.tabularFigures()],
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ],
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
-                roundButton(
-                  tooltip: bookmarked ? l10n.removeBookmark : l10n.bookmarkThisPage,
-                  onTap: _toggleBookmark,
-                  child: Icon(
-                    bookmarked ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
-                    size: 21,
-                    color: bookmarked ? AppColors.accentLime : AppColors.fg,
+              ),
+              Positioned(
+                left: tipX - tipWidth / 2,
+                width: tipWidth,
+                bottom: _barHeight + 6,
+                child: IgnorePointer(
+                  child: Center(
+                    child: _PercentBubble(
+                      label: l10n.percentValue(percent),
+                      color: bubbleColor,
+                      textColor: seeking ? AppColors.accentLime : textColor,
+                      borderColor: seeking
+                          ? AppColors.accentLime.withValues(alpha: 0.35)
+                          : AppColors.fg.withValues(alpha: 0.05),
+                    ),
                   ),
                 ),
-                const SizedBox(width: 6),
-                roundButton(
-                  tooltip: l10n.readingSettings,
-                  onTap: _showCustomizationSheet,
-                  child: Text(l10n.fontSampleGlyph, style: GoogleFonts.literata(fontSize: 16, color: AppColors.fg)),
-                ),
-              ],
-            ),
-          ),
-        ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -3160,64 +3203,114 @@ class _ReaderMenuGlyph extends StatelessWidget {
   }
 }
 
-/// Footer progress bar you can tap or drag to jump through the book.
-/// Reports the dragged position live and commits it on release.
-/// Footer progress ring with the percentage inside.
-class _ProgressRing extends StatelessWidget {
-  final double value;
-  final String label;
-  final bool active;
-  const _ProgressRing({required this.value, required this.label, required this.active});
+/// "Book / Chapter" on one line of the progress bar. Shrinks from 13 to 11
+/// px to fit; still too long, the book name is cut first (to about 45% of
+/// the room), then the chapter name.
+class _FitTitle extends StatelessWidget {
+  final String book;
+  final String? chapter;
+  final String separator;
+  final Color color;
+  const _FitTitle({required this.book, required this.chapter, required this.separator, required this.color});
+
+  static const double _maxSize = 13;
+  static const double _minSize = 11;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 50,
-      height: 50,
-      child: CustomPaint(
-        painter: _RingPainter(
-          value: value,
-          track: AppColors.fg.withValues(alpha: 0.12),
-          fill: AppColors.accentLime,
-          stroke: active ? 5 : 4,
-        ),
-        child: Center(
-          child: Text(
-            label,
-            style: GoogleFonts.sora(
-              fontSize: label.length > 3 ? 10.5 : 12,
-              fontWeight: FontWeight.w600,
-              color: active ? AppColors.accentLime : AppColors.fg,
-            ),
-          ),
-        ),
-      ),
+    final scaler = MediaQuery.textScalerOf(context);
+    final direction = Directionality.of(context);
+    final chapter = this.chapter;
+    final full = chapter == null ? book : '$book$separator$chapter';
+    TextStyle styleAt(double size) => GoogleFonts.sora(fontSize: size, color: color);
+    double widthOf(String text, TextStyle style) {
+      final painter = TextPainter(
+        text: TextSpan(text: text, style: style),
+        textDirection: direction,
+        textScaler: scaler,
+        maxLines: 1,
+      )..layout();
+      final w = painter.width;
+      painter.dispose();
+      return w;
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final room = constraints.maxWidth;
+        for (var size = _maxSize; size >= _minSize; size -= 0.5) {
+          if (widthOf(full, styleAt(size)) <= room) {
+            return Text(full, maxLines: 1, softWrap: false, style: styleAt(size));
+          }
+        }
+        final style = styleAt(_minSize);
+        Widget cut(String text) =>
+            Text(text, maxLines: 1, softWrap: false, overflow: TextOverflow.ellipsis, style: style);
+        if (chapter == null) return cut(book);
+        // Book gets what the chapter leaves, but never less than ~45% (unless it needs less).
+        final sepW = widthOf(separator, style);
+        final chapterW = widthOf(chapter, style);
+        final bookW = widthOf(book, style);
+        final bookRoom = math.min(bookW, math.max(room * 0.45, room - sepW - chapterW)).ceilToDouble();
+        return Row(
+          children: [
+            SizedBox(width: bookRoom, child: cut(book)),
+            Text(separator, maxLines: 1, softWrap: false, style: style),
+            Expanded(child: cut(chapter)),
+          ],
+        );
+      },
     );
   }
 }
 
-class _RingPainter extends CustomPainter {
-  final double value;
-  final Color track;
-  final Color fill;
-  final double stroke;
-  const _RingPainter({required this.value, required this.track, required this.fill, required this.stroke});
+/// The percentage over the progress bar's fill edge, with a small pointer underneath.
+class _PercentBubble extends StatelessWidget {
+  final String label;
+  final Color color;
+  final Color textColor;
+  final Color borderColor;
+  const _PercentBubble({required this.label, required this.color, required this.textColor, required this.borderColor});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(7),
+            border: Border.all(color: borderColor),
+          ),
+          child: Text(
+            label,
+            style: GoogleFonts.sora(fontSize: 11, height: 14 / 11, color: textColor),
+          ),
+        ),
+        CustomPaint(size: const Size(10, 5), painter: _PointerPainter(color)),
+      ],
+    );
+  }
+}
+
+class _PointerPainter extends CustomPainter {
+  final Color color;
+  const _PointerPainter(this.color);
 
   @override
   void paint(Canvas canvas, Size size) {
-    final rect = Offset.zero & size;
-    final r = rect.deflate(stroke / 2 + 2);
-    final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = stroke
-      ..strokeCap = StrokeCap.round;
-    canvas.drawArc(r, 0, math.pi * 2, false, paint..color = track);
-    if (value > 0) canvas.drawArc(r, -math.pi / 2, math.pi * 2 * value.clamp(0.0, 1.0), false, paint..color = fill);
+    final path = Path()
+      ..moveTo(0, 0)
+      ..lineTo(size.width, 0)
+      ..lineTo(size.width / 2, size.height)
+      ..close();
+    canvas.drawPath(path, Paint()..color = color);
   }
 
   @override
-  bool shouldRepaint(_RingPainter old) =>
-      old.value != value || old.track != track || old.fill != fill || old.stroke != stroke;
+  bool shouldRepaint(_PointerPainter old) => old.color != color;
 }
 
 /// Places the selection menu by the selected word (above it, or below when
