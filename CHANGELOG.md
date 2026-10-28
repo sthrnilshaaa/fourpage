@@ -6,6 +6,25 @@ All notable changes to Fourpage. The format follows
 
 ## [Unreleased]
 
+## [1.0.8] - 2026-10-28
+
+### Added
+- The chapters list marks the chapter you're reading with a lime bar and
+  opens scrolled to it.
+- Bookmarked pages show a ribbon in the zoomed-out page overview.
+- Swipe sideways to move between the Library tabs (All books, Shelves,
+  Folders) and the Saved tabs (Bookmark, Quotes, Notes).
+- A light haptic tick when switching tabs in the bottom bar.
+- Settings has its own highlighted icon in the bottom bar.
+
+### Changed
+- The reader's top bar shows the current chapter name instead of the
+  percentage read.
+- "Recent Reading" on Home is now "Continue", and "Choose files" is now
+  "Pick books".
+- The page overview background matches the Home screen.
+- Saved items are removed from the long-press menu instead of by swiping.
+
 ## [1.0.7] - 2026-10-28
 
 ### Fixed
