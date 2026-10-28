@@ -11,6 +11,8 @@
 [![GitHub stars](https://img.shields.io/github/stars/sthrnilshaaa/fourpage?style=social)](https://github.com/sthrnilshaaa/fourpage)
 [![Support on Ko-fi](https://img.shields.io/badge/Ko--fi-support-ff5e5b?logo=ko-fi&logoColor=white)](https://ko-fi.com/L2L124TL7L)
 
+<a href="https://play.google.com/apps/testing/com.fourpages.reader"><img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" height="80"></a>
+
 [**Download**](#download) · [Features](#features) · [Build](#build-from-source) · [Translate](#translations) · [Contribute](CONTRIBUTING.md) · [Support](#support)
 
 </div>
@@ -59,8 +61,18 @@
 
 ## Download
 
-APK downloads will be on [GitHub Releases](https://github.com/sthrnilshaaa/fourpage/releases) soon.
-Until then, [build it from source](#build-from-source).
+<a href="https://play.google.com/apps/testing/com.fourpages.reader"><img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" height="80"></a>
+
+**Fourpage is in beta on Google Play.** To join:
+
+1. Join the [Fourpage Testers Google Group](https://groups.google.com/g/fourpage-testers) (one click, with the Google account you use on your phone).
+2. Open the [beta sign-up page](https://play.google.com/apps/testing/com.fourpages.reader) on your phone or computer, signed in with your Google account.
+3. Tap **Become a tester**.
+4. Install it from the [Play Store listing](https://play.google.com/store/apps/details?id=com.fourpages.reader). Updates arrive automatically.
+
+Joining the beta also helps Fourpage get its full public release on Google Play.
+
+You can also [build it from source](#build-from-source).
 
 ## Build from source
 
