@@ -6,6 +6,8 @@ All notable changes to Fourpage. The format follows
 
 ## [Unreleased]
 
+## [1.0.7] - 2026-10-28
+
 ### Fixed
 - The library no longer stutters right after launch while books load in the
   background:
@@ -127,7 +129,10 @@ First release.
 - Reader fonts: Literata, Lora, Source Serif, Atkinson Hyperlegible and
   IBM Plex Sans (all freely licensed).
 
-[Unreleased]: https://github.com/sthrnilshaaa/fourpage/compare/v1.0.4...HEAD
+[Unreleased]: https://github.com/sthrnilshaaa/fourpage/compare/v1.0.7...HEAD
+[1.0.7]: https://github.com/sthrnilshaaa/fourpage/compare/v1.0.6...v1.0.7
+[1.0.6]: https://github.com/sthrnilshaaa/fourpage/compare/v1.0.5...v1.0.6
+[1.0.5]: https://github.com/sthrnilshaaa/fourpage/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/sthrnilshaaa/fourpage/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/sthrnilshaaa/fourpage/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/sthrnilshaaa/fourpage/compare/v1.0.1...v1.0.2
