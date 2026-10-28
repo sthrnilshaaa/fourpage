@@ -6,6 +6,15 @@ All notable changes to Fourpage. The format follows
 
 ## [Unreleased]
 
+## [1.0.9] - 2026-10-28
+
+### Fixed
+- The bookmark ribbon in the zoomed-out page overview is no longer cut off
+  or squashed; it now sits just above the page's top edge, as designed.
+
+### Changed
+- More room around the back button in the reader's top bar.
+
 ## [1.0.8] - 2026-10-28
 
 ### Added
