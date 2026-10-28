@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 
 import '../theme/app_colors.dart';
 
@@ -96,8 +97,12 @@ class BookTileSkeleton extends StatelessWidget {
       );
 }
 
-/// Paints [child]'s shapes in a sweeping shimmer. Every shimmer runs on the
-/// same clock, so separate placeholders on screen sweep together.
+/// Gives the blocks inside [child] a sweeping shimmer. Every shimmer runs on
+/// the same clock and sweeps across the whole window, so separate
+/// placeholders on screen sweep together.
+///
+/// The blocks paint the gradient themselves; there's no ShaderMask, which
+/// drew every placeholder into its own offscreen layer each frame.
 class SkeletonShimmer extends StatefulWidget {
   final Widget child;
 
@@ -122,25 +127,125 @@ class _SkeletonShimmerState extends State<SkeletonShimmer> with SingleTickerProv
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _shimmer,
-      builder: (context, child) {
-        final base = AppColors.fg.withValues(alpha: 0.06);
-        final highlight = AppColors.fg.withValues(alpha: 0.13);
-        final t = _shimmer.value * 2 - 0.5; // sweep from left to right
-        return ShaderMask(
-          blendMode: BlendMode.srcIn,
-          shaderCallback: (bounds) => LinearGradient(
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-            colors: [base, highlight, base],
-            stops: [(t - 0.3).clamp(0.0, 1.0), t.clamp(0.0, 1.0), (t + 0.3).clamp(0.0, 1.0)],
-          ).createShader(bounds),
-          child: child,
-        );
-      },
-      child: widget.child,
-    );
+    // Ticks repaint only the blocks, not what's around the placeholder.
+    return RepaintBoundary(child: _ShimmerScope(shimmer: _shimmer, child: widget.child));
+  }
+}
+
+class _ShimmerScope extends InheritedWidget {
+  final Animation<double> shimmer;
+
+  const _ShimmerScope({required this.shimmer, required super.child});
+
+  static Animation<double> of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<_ShimmerScope>()?.shimmer ?? const AlwaysStoppedAnimation(0);
+
+  @override
+  bool updateShouldNotify(_ShimmerScope old) => old.shimmer != shimmer;
+}
+
+/// One rounded placeholder shape, painted with the shimmer of the nearest
+/// [SkeletonShimmer].
+class _Block extends LeafRenderObjectWidget {
+  final double width;
+  final double height;
+  final double radius;
+
+  const _Block({required this.width, required this.height, required this.radius});
+
+  @override
+  RenderObject createRenderObject(BuildContext context) => _RenderBlock(
+        shimmer: _ShimmerScope.of(context),
+        width: width,
+        height: height,
+        radius: radius,
+        sweepWidth: MediaQuery.sizeOf(context).width,
+        base: AppColors.fg.withValues(alpha: 0.06),
+        highlight: AppColors.fg.withValues(alpha: 0.13),
+      );
+
+  @override
+  void updateRenderObject(BuildContext context, _RenderBlock renderObject) {
+    renderObject
+      ..shimmer = _ShimmerScope.of(context)
+      ..width = width
+      ..height = height
+      ..radius = radius
+      ..sweepWidth = MediaQuery.sizeOf(context).width
+      ..base = AppColors.fg.withValues(alpha: 0.06)
+      ..highlight = AppColors.fg.withValues(alpha: 0.13);
+  }
+}
+
+class _RenderBlock extends RenderBox {
+  _RenderBlock({
+    required Animation<double> shimmer,
+    required double width,
+    required double height,
+    required this.radius,
+    required this.sweepWidth,
+    required this.base,
+    required this.highlight,
+  })  : _shimmer = shimmer,
+        _width = width,
+        _height = height;
+
+  Animation<double> _shimmer;
+  set shimmer(Animation<double> value) {
+    if (value == _shimmer) return;
+    if (attached) _shimmer.removeListener(markNeedsPaint);
+    _shimmer = value;
+    if (attached) _shimmer.addListener(markNeedsPaint);
+    markNeedsPaint();
+  }
+
+  double _width;
+  set width(double value) {
+    if (value == _width) return;
+    _width = value;
+    markNeedsLayout();
+  }
+
+  double _height;
+  set height(double value) {
+    if (value == _height) return;
+    _height = value;
+    markNeedsLayout();
+  }
+
+  // Painted every tick anyway, so these just take effect on the next frame.
+  double radius;
+  double sweepWidth;
+  Color base;
+  Color highlight;
+
+  @override
+  void attach(PipelineOwner owner) {
+    super.attach(owner);
+    _shimmer.addListener(markNeedsPaint);
+  }
+
+  @override
+  void detach() {
+    _shimmer.removeListener(markNeedsPaint);
+    super.detach();
+  }
+
+  @override
+  void performLayout() => size = constraints.constrain(Size(_width, _height));
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    final t = _shimmer.value * 2 - 0.5; // sweep from left to right
+    // The gradient spans the window, not this block: where the window's
+    // left edge is, in this canvas.
+    final left = offset.dx - localToGlobal(Offset.zero).dx;
+    final paint = Paint()
+      ..shader = LinearGradient(
+        colors: [base, highlight, base],
+        stops: [(t - 0.3).clamp(0.0, 1.0), t.clamp(0.0, 1.0), (t + 0.3).clamp(0.0, 1.0)],
+      ).createShader(Rect.fromLTWH(left, offset.dy, sweepWidth <= 0 ? size.width : sweepWidth, size.height));
+    context.canvas.drawRRect(RRect.fromRectAndRadius(offset & size, Radius.circular(radius)), paint);
   }
 }
 
@@ -197,12 +302,5 @@ class _BookRowShape extends StatelessWidget {
       );
 }
 
-// Solid white blocks; the shimmer paints them.
-Widget _block({required double width, required double height, double radius = 6}) => Container(
-      width: width,
-      height: height,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(radius),
-      ),
-    );
+Widget _block({required double width, required double height, double radius = 6}) =>
+    _Block(width: width, height: height, radius: radius);

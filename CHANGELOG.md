@@ -6,6 +6,17 @@ All notable changes to Fourpage. The format follows
 
 ## [Unreleased]
 
+### Fixed
+- The library no longer stutters right after launch while books load in the
+  background:
+  - Books are read on a background thread instead of the one that draws the
+    screen, with a short pause between books.
+  - Books still showing a placeholder load first.
+  - Loading a book no longer refreshes the whole Home screen.
+  - Loading placeholders animate without the extra drawing work they caused.
+  - Covers are decoded at the size they're shown, not at full resolution.
+  - Home only builds the book rows and tiles that are on screen.
+
 ## [1.0.6] - 2026-10-28
 
 ### Added

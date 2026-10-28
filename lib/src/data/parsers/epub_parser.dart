@@ -1,6 +1,7 @@
 /// Master EPUB publication parser orchestrating OCF Container, OPF, and Nav parsers.
 library;
 
+import 'package:flutter/foundation.dart' show compute;
 import 'package:xml/xml.dart';
 import '../../core/utils/hash_utils.dart';
 import '../../core/utils/path_utils.dart';
@@ -27,8 +28,14 @@ class EpubPublicationParser implements IPublicationParser {
         _packageOpfParser = packageOpfParser ?? PackageOpfParser(),
         _navigationParser = navigationParser ?? NavigationParser();
 
+  /// Parses on a background isolate: it unzips and reads every chapter
+  /// (for the word count), which froze the UI when done on the main thread.
   @override
-  Future<Publication> parsePublication(List<int> archiveBytes, {String? filePath}) async {
+  Future<Publication> parsePublication(List<int> archiveBytes, {String? filePath}) {
+    return compute((_) => _parse(archiveBytes), null);
+  }
+
+  Publication _parse(List<int> archiveBytes) {
     final container = OcfContainer.fromBytes(archiveBytes);
     container.validateMimetype();
 

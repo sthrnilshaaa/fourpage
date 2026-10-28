@@ -148,12 +148,7 @@ class BookCoverWidget extends StatelessWidget {
             if (snapshot.hasData && snapshot.data != null) {
               return Stack(
                 children: [
-                  Positioned.fill(
-                    child: Image.memory(
-                      snapshot.data!,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
+                  Positioned.fill(child: _CoverImage(bytes: snapshot.data!)),
                   if (showFormatBadge)
                     Positioned(
                       left: 8,
@@ -306,10 +301,7 @@ class BookCoverWidget extends StatelessWidget {
           initialData: _coverBytes[book.publication.id],
                   builder: (context, snapshot) {
                     if (snapshot.hasData && snapshot.data != null) {
-                      return Image.memory(
-                        snapshot.data!,
-                        fit: BoxFit.cover,
-                      );
+                      return _CoverImage(bytes: snapshot.data!);
                     }
                     return Padding(
                       padding: const EdgeInsets.all(8),
@@ -432,6 +424,29 @@ class BookCoverWidget extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// A cover image decoded at the size it's drawn, not its full resolution
+/// (a 1600x2400 cover for a 76-wide thumbnail cost a big decode and memory).
+class _CoverImage extends StatelessWidget {
+  final Uint8List bytes;
+
+  const _CoverImage({required this.bytes});
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        return Image.memory(
+          bytes,
+          fit: BoxFit.cover,
+          gaplessPlayback: true,
+          cacheWidth: width.isFinite && width > 0 ? (width * MediaQuery.devicePixelRatioOf(context)).ceil() : null,
+        );
+      },
     );
   }
 }

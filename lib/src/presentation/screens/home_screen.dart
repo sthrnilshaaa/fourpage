@@ -72,10 +72,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     ? const HomeSkeleton()
                     : books.isEmpty
                     ? _buildEmptyState(context)
-                    : ListView(
+                    // Slivers, so only the book rows/tiles on screen are built.
+                    : CustomScrollView(
                         physics: const BouncingScrollPhysics(),
-                        padding: EdgeInsets.only(top: 2, bottom: browseBottomPadding(context, compact: 140)),
-                        children: [
+                        slivers: [
+                          const SliverToBoxAdapter(child: SizedBox(height: 2)),
+                          SliverList.list(children: [
                           // 1. "Recent Reading": books by when they were
                           // last opened (hidden until one has been).
                           if (recent.isNotEmpty) ...[
@@ -116,10 +118,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             showChevron: true,
                           ),
                           const SizedBox(height: 18),
+                          ]),
                           if (!windowClass.isCompact)
-                            BookGrid(
+                            BookGrid.sliver(
                               books: books,
-                              scrollable: false,
                               padding: const EdgeInsets.fromLTRB(21, 0, 22, 20),
                               selected: details,
                               onOpen: (b) => _openReader(context, b),
@@ -127,19 +129,25 @@ class _HomeScreenState extends State<HomeScreen> {
                               onSecondary: (b, _) => showBookActions(context, b, onOpen: () => _openReader(context, b)),
                             )
                           else
-                          for (final book in books)
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(21, 0, 22, 20),
-                              child: book.showsPlaceholder
-                                  ? const BookRowSkeleton()
-                                  : _HomeBookRow(
-                                      key: ValueKey(book.publication.id),
-                                      book: book,
-                                      onTap: () => _openReader(context, book),
-                                      onLongPress: () =>
-                                          showBookActions(context, book, onOpen: () => _openReader(context, book)),
-                                    ),
+                            SliverList.builder(
+                              itemCount: books.length,
+                              itemBuilder: (context, i) {
+                                final book = books[i];
+                                return Padding(
+                                  padding: const EdgeInsets.fromLTRB(21, 0, 22, 20),
+                                  child: book.showsPlaceholder
+                                      ? const BookRowSkeleton()
+                                      : _HomeBookRow(
+                                          key: ValueKey(book.publication.id),
+                                          book: book,
+                                          onTap: () => _openReader(context, book),
+                                          onLongPress: () =>
+                                              showBookActions(context, book, onOpen: () => _openReader(context, book)),
+                                        ),
+                                );
+                              },
                             ),
+                          SliverToBoxAdapter(child: SizedBox(height: browseBottomPadding(context, compact: 140))),
                         ],
                       ),
               ),

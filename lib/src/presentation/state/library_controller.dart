@@ -288,8 +288,12 @@ class LibraryController extends ChangeNotifier {
     _isInitialized = true;
 
     // Pick up publications written elsewhere (e.g. another import path).
+    // Debounced: opening each book saves its publication again, and a full
+    // reload per book made Home rebuild over and over while books loaded.
     AppDatabase.instance.changeStream.listen((tableName) {
-      if (tableName == 'publications') _reloadFromDatabase();
+      if (tableName != 'publications') return;
+      _reloadDebounce?.cancel();
+      _reloadDebounce = Timer(const Duration(milliseconds: 300), _reloadFromDatabase);
     });
     notifyListeners();
     _loadRemaining();
@@ -301,11 +305,16 @@ class LibraryController extends ChangeNotifier {
   final List<BookItem> _loadQueue = [];
   bool _loadWorkerRunning = false;
 
-  /// Queues every book not loaded yet: Recent Reading first (it's at the top
-  /// of Home), then library order.
+  /// Queues every book not loaded yet. Books still drawn as skeletons go
+  /// first (Recent Reading before the rest), then the ones that already show
+  /// a cached cover - those only need loading for bookmarks, word counts etc.
   void _loadRemaining() {
     final recent = recentBooks;
-    for (final book in [...recent, ..._books.where((b) => !recent.contains(b))]) {
+    final ordered = [...recent, ..._books.where((b) => !recent.contains(b))];
+    for (final book in [
+      ...ordered.where((b) => b.showsPlaceholder),
+      ...ordered.where((b) => !b.showsPlaceholder),
+    ]) {
       if (!book.isLoaded) ensureLoaded(book);
     }
   }
@@ -327,8 +336,14 @@ class LibraryController extends ChangeNotifier {
   Future<void> _runLoadWorker() async {
     if (_loadWorkerRunning) return;
     _loadWorkerRunning = true;
+    var loadedAny = false;
     while (_loadQueue.isNotEmpty) {
+      // Let the UI draw a few frames between books, so loading never
+      // competes with scrolling or the first frames after launch.
+      await Future<void>.delayed(const Duration(milliseconds: 32));
+      if (_loadQueue.isEmpty) break;
       final book = _loadQueue.removeAt(0);
+      loadedAny = true;
       final wasPlaceholder = book.showsPlaceholder;
       final ok = await _loadBook(book);
       if (!ok) _books.remove(book); // unreadable: skipped, as before
@@ -338,7 +353,7 @@ class LibraryController extends ChangeNotifier {
       if (wasPlaceholder || !ok) notifyListeners();
     }
     _loadWorkerRunning = false;
-    notifyListeners(); // word counts, bookmarks etc. now that all are open
+    if (loadedAny) notifyListeners(); // word counts, bookmarks etc. now that all are open
   }
 
   Future<bool> _loadBook(BookItem book) async {
@@ -392,12 +407,22 @@ class LibraryController extends ChangeNotifier {
     } catch (_) {}
   }
 
+  Timer? _reloadDebounce;
+
   Future<void> _reloadFromDatabase() async {
     final pubs = await _repository.getAllPublications();
-    _books.removeWhere((b) => !pubs.any((p) => p.id == b.publication.id));
+    final ids = {for (final p in pubs) p.id};
+    final before = _books.length;
+    _books.removeWhere((b) => !ids.contains(b.publication.id));
+    _loadQueue.removeWhere((b) => !ids.contains(b.publication.id));
+    final removedAny = _books.length != before;
+    final afterRemove = _books.length;
     for (final pub in pubs) {
       if (!_importingPubIds.contains(pub.id)) await _restore(pub);
     }
+    // Nothing added or removed (e.g. a book that was just opened re-saved
+    // its publication): no rebuild needed.
+    if (!removedAny && _books.length == afterRemove) return;
     _dedupe();
     notifyListeners();
     _loadRemaining();

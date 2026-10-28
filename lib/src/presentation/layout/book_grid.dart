@@ -27,6 +27,10 @@ class BookGrid extends StatelessWidget {
   /// When false the grid sizes itself to its content (inside another list).
   final bool scrollable;
 
+  /// Builds a sliver for a CustomScrollView, so only the tiles on screen are
+  /// built (see [BookGrid.sliver]).
+  final bool _sliver;
+
   const BookGrid({
     super.key,
     required this.books,
@@ -36,35 +40,64 @@ class BookGrid extends StatelessWidget {
     this.onSecondary,
     this.padding = const EdgeInsets.fromLTRB(24, 20, 24, 24),
     this.scrollable = true,
-  });
+  }) : _sliver = false;
+
+  /// The grid as a sliver, for a page that scrolls the grid along with other
+  /// content (Home).
+  const BookGrid.sliver({
+    super.key,
+    required this.books,
+    required this.onOpen,
+    this.selected,
+    this.onSelect,
+    this.onSecondary,
+    this.padding = const EdgeInsets.fromLTRB(24, 20, 24, 24),
+  })  : scrollable = false,
+        _sliver = true;
 
   static const _gap = 16.0;
   static const _textBlock = 66.0;
 
+  SliverGridDelegate _delegateFor(double width) {
+    final inner = width - padding.horizontal;
+    final columns = gridColumnsFor(inner);
+    final tileWidth = (inner - _gap * (columns - 1)) / columns;
+    return SliverGridDelegateWithFixedCrossAxisCount(
+      crossAxisCount: columns,
+      crossAxisSpacing: _gap,
+      mainAxisSpacing: 22,
+      mainAxisExtent: tileWidth * 1.5 + _textBlock,
+    );
+  }
+
+  Widget _item(BuildContext context, int i) {
+    final book = books[i];
+    return book.showsPlaceholder ? const BookTileSkeleton() : _tile(book);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final inner = constraints.maxWidth - padding.horizontal;
-        final columns = gridColumnsFor(inner);
-        final tileWidth = (inner - _gap * (columns - 1)) / columns;
-        return GridView.builder(
+    if (_sliver) {
+      return SliverLayoutBuilder(
+        builder: (context, constraints) => SliverPadding(
           padding: padding,
-          shrinkWrap: !scrollable,
-          physics: scrollable ? null : const NeverScrollableScrollPhysics(),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: columns,
-            crossAxisSpacing: _gap,
-            mainAxisSpacing: 22,
-            mainAxisExtent: tileWidth * 1.5 + _textBlock,
+          sliver: SliverGrid.builder(
+            gridDelegate: _delegateFor(constraints.crossAxisExtent),
+            itemCount: books.length,
+            itemBuilder: _item,
           ),
-          itemCount: books.length,
-          itemBuilder: (context, i) {
-            final book = books[i];
-            return book.showsPlaceholder ? const BookTileSkeleton() : _tile(book);
-          },
-        );
-      },
+        ),
+      );
+    }
+    return LayoutBuilder(
+      builder: (context, constraints) => GridView.builder(
+        padding: padding,
+        shrinkWrap: !scrollable,
+        physics: scrollable ? null : const NeverScrollableScrollPhysics(),
+        gridDelegate: _delegateFor(constraints.maxWidth),
+        itemCount: books.length,
+        itemBuilder: _item,
+      ),
     );
   }
 
