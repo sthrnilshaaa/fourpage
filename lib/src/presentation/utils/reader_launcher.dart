@@ -69,10 +69,15 @@ ReaderEngine get currentReaderEngine => resolveReaderEngine(platform: defaultTar
 // on top of the first; both would open the same book's engine.
 bool _readerOpening = false;
 
-Future<void> openReader(BuildContext context, BookItem book, {Locator? initialLocator}) {
-  if (_readerOpening) return Future.value();
+Future<void> openReader(BuildContext context, BookItem book, {Locator? initialLocator}) async {
+  if (_readerOpening) return;
   _readerOpening = true;
   Future<void>.delayed(const Duration(milliseconds: 700), () => _readerOpening = false);
+
+  // At launch book files load in the background; this one goes first.
+  final navigator = Navigator.of(context);
+  if (!book.isLoaded && !await LibraryController.instance.ensureLoaded(book, urgent: true)) return;
+
   final Widget screen = book.isPdf ? PdfReaderScreen(book: book) : switch (currentReaderEngine) {
     ReaderEngine.native => NativeReaderScreen(book: book, initialLocator: initialLocator),
     ReaderEngine.sakura => SakuraReaderScreen(book: book, initialLocator: initialLocator),
@@ -80,7 +85,5 @@ Future<void> openReader(BuildContext context, BookItem book, {Locator? initialLo
   };
 
   LibraryController.instance.markOpened(book);
-  return Navigator.of(context)
-      .push(MaterialPageRoute(builder: (_) => screen))
-      .whenComplete(LibraryController.instance.readerClosed);
+  return navigator.push(MaterialPageRoute(builder: (_) => screen)).whenComplete(LibraryController.instance.readerClosed);
 }

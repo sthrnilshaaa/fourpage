@@ -1,9 +1,10 @@
-/// Shared by every reader screen: times the reading session and shows the
-/// break reminder when it's due.
+/// Shared by every reader screen: times the reading session, shows the
+/// break reminder when it's due, and keeps the screen on while reading.
 library;
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../../l10n/l10n.dart';
 import '../platform/app_haptics.dart';
@@ -23,12 +24,14 @@ mixin ReaderUsageMixin<T extends StatefulWidget> on State<T> {
     super.initState();
     UsageTracker.instance.startReading(usageBook);
     UsageTracker.instance.breakDue.addListener(_onBreakDue);
+    _keepScreenOn(1);
   }
 
   @override
   void dispose() {
     UsageTracker.instance.breakDue.removeListener(_onBreakDue);
     UsageTracker.instance.stopReading();
+    _keepScreenOn(-1);
     super.dispose();
   }
 
@@ -55,4 +58,13 @@ mixin ReaderUsageMixin<T extends StatefulWidget> on State<T> {
     UsageTracker.instance.acknowledgeBreak();
     if (takeBreak == true && mounted) Navigator.of(context).maybePop();
   }
+}
+
+// Open reader screens. Counted because a reader replacing itself (engine
+// fallback) starts the new screen before the old one is disposed.
+int _openReaders = 0;
+
+void _keepScreenOn(int change) {
+  _openReaders = (_openReaders + change).clamp(0, 1 << 30);
+  WakelockPlus.toggle(enable: _openReaders > 0).catchError((Object e) => debugPrint('Wakelock unavailable: $e'));
 }

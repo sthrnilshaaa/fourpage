@@ -64,6 +64,19 @@ class BookCoverWidget extends StatelessWidget {
     final coverResource = book.publication.coverResource;
     if (coverResource == null) return null;
 
+    // Saved on an earlier launch: drawn before the book file is parsed.
+    final library = LibraryController.instance;
+    final cached = await library.readCachedCover(book.publication.id);
+    if (cached != null) return cached;
+
+    final bytes = await _extractCover(book, coverResource);
+    if (bytes != null && !book.isPdf) await library.writeCachedCover(book.publication.id, bytes);
+    return bytes;
+  }
+
+  Future<Uint8List?> _extractCover(BookItem book, ManifestResource coverResource) async {
+    if (!book.isLoaded && !await LibraryController.instance.ensureLoaded(book)) return null;
+
     final resolver = book.session.resourceResolver;
     if (resolver != null && resolver.hasResource(coverResource.href)) {
       try {

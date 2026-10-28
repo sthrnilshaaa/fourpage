@@ -47,6 +47,27 @@ class MainActivity : FlutterActivity() {
                 layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
             }
         }
+        preferHighestRefreshRate()
+    }
+
+    /**
+     * Asks for the display's fastest mode (e.g. 120 Hz) at the current
+     * resolution. Many phones otherwise run apps at 60 Hz by default.
+     */
+    private fun preferHighestRefreshRate() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return
+        val display = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            display
+        } else {
+            @Suppress("DEPRECATION")
+            windowManager.defaultDisplay
+        } ?: return
+        val current = display.mode
+        val best = display.supportedModes
+            .filter { it.physicalWidth == current.physicalWidth && it.physicalHeight == current.physicalHeight }
+            .maxByOrNull { it.refreshRate } ?: return
+        if (window.attributes.preferredDisplayModeId == best.modeId) return
+        window.attributes = window.attributes.apply { preferredDisplayModeId = best.modeId }
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -165,6 +186,8 @@ class MainActivity : FlutterActivity() {
 
     override fun onResume() {
         super.onResume()
+        // Some OEM builds drop the preference when the app comes back.
+        preferHighestRefreshRate()
         appUpdater?.onResume()
     }
 

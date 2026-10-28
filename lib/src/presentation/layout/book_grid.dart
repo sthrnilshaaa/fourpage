@@ -7,6 +7,7 @@ import '../state/library_controller.dart';
 import '../theme/app_colors.dart';
 import '../widgets/app_chrome.dart';
 import '../widgets/book_cover_widget.dart';
+import '../widgets/home_skeleton.dart';
 import 'book_tap.dart';
 
 /// Columns for a cover grid [width] wide, tiles at least [minTile] wide.
@@ -14,6 +15,8 @@ int gridColumnsFor(double width, {double minTile = 150}) => math.max(2, width ~/
 
 /// Cover grid used by Library/Home/Search on medium and expanded windows.
 class BookGrid extends StatelessWidget {
+  /// Books to show; one still loading with nothing to draw yet is shown as
+  /// a placeholder tile (see [BookItem.showsPlaceholder]).
   final List<BookItem> books;
   final BookItem? selected;
   final ValueChanged<BookItem> onOpen;
@@ -56,7 +59,10 @@ class BookGrid extends StatelessWidget {
             mainAxisExtent: tileWidth * 1.5 + _textBlock,
           ),
           itemCount: books.length,
-          itemBuilder: (context, i) => _tile(books[i]),
+          itemBuilder: (context, i) {
+            final book = books[i];
+            return book.showsPlaceholder ? const BookTileSkeleton() : _tile(book);
+          },
         );
       },
     );

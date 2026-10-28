@@ -53,8 +53,9 @@ class _HomeScreenState extends State<HomeScreen> {
     return ListenableBuilder(
       listenable: LibraryController.instance,
       builder: (context, _) {
-        final books = LibraryController.instance.books;
-        final recent = LibraryController.instance.recentBooks;
+        final library = LibraryController.instance;
+        final books = library.books;
+        final recent = library.recentBooks;
 
         final windowClass = context.windowClass;
         final details = windowClass.isExpanded ? resolveDetailsBook(_selected, books, recent: recent) : null;
@@ -67,7 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Expanded(
                 // Library still loading at startup: skeleton, not the
                 // "no books yet" empty state (which flashed before).
-                child: !LibraryController.instance.isInitialized
+                child: !library.isCatalogLoaded
                     ? const HomeSkeleton()
                     : books.isEmpty
                     ? _buildEmptyState(context)
@@ -92,13 +93,17 @@ class _HomeScreenState extends State<HomeScreen> {
                                 padding: const EdgeInsets.symmetric(horizontal: 19),
                                 itemCount: recent.length,
                                 separatorBuilder: (_, _) => const SizedBox(width: 20),
-                                itemBuilder: (context, index) => _RecentBookCard(
-                                  key: ValueKey(recent[index].publication.id),
-                                  book: recent[index],
-                                  onTap: () => _openReader(context, recent[index]),
-                                  onLongPress: () => showBookActions(context, recent[index],
-                                      onOpen: () => _openReader(context, recent[index])),
-                                ),
+                                // Books still loading at launch, with no saved
+                                // cover yet, are skeletons until they're ready.
+                                itemBuilder: (context, index) => recent[index].showsPlaceholder
+                                    ? const RecentCardSkeleton()
+                                    : _RecentBookCard(
+                                        key: ValueKey(recent[index].publication.id),
+                                        book: recent[index],
+                                        onTap: () => _openReader(context, recent[index]),
+                                        onLongPress: () => showBookActions(context, recent[index],
+                                            onOpen: () => _openReader(context, recent[index])),
+                                      ),
                               ),
                             ),
                             const SizedBox(height: 45),
@@ -125,11 +130,15 @@ class _HomeScreenState extends State<HomeScreen> {
                           for (final book in books)
                             Padding(
                               padding: const EdgeInsets.fromLTRB(21, 0, 22, 20),
-                              child: _HomeBookRow(
-                                book: book,
-                                onTap: () => _openReader(context, book),
-                                onLongPress: () => showBookActions(context, book, onOpen: () => _openReader(context, book)),
-                              ),
+                              child: book.showsPlaceholder
+                                  ? const BookRowSkeleton()
+                                  : _HomeBookRow(
+                                      key: ValueKey(book.publication.id),
+                                      book: book,
+                                      onTap: () => _openReader(context, book),
+                                      onLongPress: () =>
+                                          showBookActions(context, book, onOpen: () => _openReader(context, book)),
+                                    ),
                             ),
                         ],
                       ),
@@ -321,7 +330,7 @@ class _HomeBookRow extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback? onLongPress;
 
-  const _HomeBookRow({required this.book, required this.onTap, this.onLongPress});
+  const _HomeBookRow({super.key, required this.book, required this.onTap, this.onLongPress});
 
   @override
   Widget build(BuildContext context) {

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
@@ -23,9 +24,24 @@ class BookItem {
   final Color coverGradientEnd;
   final ReadingSession session;
 
-  /// Whole EPUB in memory (the epubx engine renders from it). Empty for PDF.
-  final List<int> archiveBytes;
+  /// Whole EPUB in memory (the epubx engine renders from it). Empty for PDF,
+  /// and for an EPUB until it's loaded (see [isLoaded]).
+  List<int> archiveBytes;
   final String? folderPath;
+
+  /// Saved progress (0..1) from the database, shown until [session] is open.
+  final double? savedProgress;
+
+  // At launch the library lists books from the database right away and
+  // reads/parses each EPUB file afterwards (LibraryController.ensureLoaded).
+  bool _isLoaded;
+  bool get isLoaded => _isLoaded;
+
+  /// Whether a cover image was saved on disk on an earlier launch.
+  bool coverCached;
+
+  /// Not loaded yet and nothing to draw for it: lists show a skeleton.
+  bool get showsPlaceholder => !_isLoaded && !coverCached;
 
   /// Last read PDF page (0-based) and fraction, persisted as reading
   /// progress. EPUB progress lives in [session].
@@ -42,7 +58,10 @@ class BookItem {
     this.folderPath,
     this.pdfPage = 0,
     this.pdfProgress = 0,
-  });
+    this.savedProgress,
+    bool loaded = true,
+    this.coverCached = false,
+  }) : _isLoaded = loaded;
 
   bool get isPdf => kind == BookFormat.pdf;
 
@@ -50,8 +69,11 @@ class BookItem {
   String get format => isPdf ? 'PDF' : 'EPUB';
 
   /// Reading progress 0..1, for every list, sort and cover in the app.
-  double get progress =>
-      isPdf ? pdfProgress.clamp(0.0, 1.0) : (session.state.completionPercentage / 100).clamp(0.0, 1.0);
+  double get progress => isPdf
+      ? pdfProgress.clamp(0.0, 1.0)
+      : isLoaded
+          ? (session.state.completionPercentage / 100).clamp(0.0, 1.0)
+          : (savedProgress ?? 0).clamp(0.0, 1.0);
 }
 
 class LibraryController extends ChangeNotifier {
@@ -180,6 +202,9 @@ class LibraryController extends ChangeNotifier {
     }
   }
   bool get isInitialized => _isInitialized;
+
+  /// True once the stored books are listed (their files may still be loading).
+  bool get isCatalogLoaded => _isInitialized;
   List<String> get scannedFolders => List.unmodifiable(_scannedFolders.toList());
 
   String? getFolderForBook(String pubId) => _bookFolderMap[pubId];
@@ -254,6 +279,8 @@ class LibraryController extends ChangeNotifier {
     } catch (e) {
       debugPrint('Error restoring shelves: $e');
     }
+    // List every book from the database first (no file parsing), so Home
+    // shows the library at once; book files are parsed in the background.
     for (final pub in await _repository.getAllPublications()) {
       await _restore(pub);
     }
@@ -265,6 +292,104 @@ class LibraryController extends ChangeNotifier {
       if (tableName == 'publications') _reloadFromDatabase();
     });
     notifyListeners();
+    _loadRemaining();
+  }
+
+  // --- background loading of book files ---------------------------------------
+
+  final Map<String, Completer<bool>> _loadWaiters = {};
+  final List<BookItem> _loadQueue = [];
+  bool _loadWorkerRunning = false;
+
+  /// Queues every book not loaded yet: Recent Reading first (it's at the top
+  /// of Home), then library order.
+  void _loadRemaining() {
+    final recent = recentBooks;
+    for (final book in [...recent, ..._books.where((b) => !recent.contains(b))]) {
+      if (!book.isLoaded) ensureLoaded(book);
+    }
+  }
+
+  /// Reads and parses [book]'s file if that hasn't happened yet. One book is
+  /// parsed at a time; [urgent] (a reader is opening it) jumps the queue.
+  /// Completes false when the file can't be read.
+  Future<bool> ensureLoaded(BookItem book, {bool urgent = false}) {
+    if (book.isLoaded) return Future.value(true);
+    final waiter = _loadWaiters.putIfAbsent(book.publication.id, Completer<bool>.new);
+    if (urgent || !_loadQueue.contains(book)) {
+      _loadQueue.remove(book);
+      urgent ? _loadQueue.insert(0, book) : _loadQueue.add(book);
+    }
+    _runLoadWorker();
+    return waiter.future;
+  }
+
+  Future<void> _runLoadWorker() async {
+    if (_loadWorkerRunning) return;
+    _loadWorkerRunning = true;
+    while (_loadQueue.isNotEmpty) {
+      final book = _loadQueue.removeAt(0);
+      final wasPlaceholder = book.showsPlaceholder;
+      final ok = await _loadBook(book);
+      if (!ok) _books.remove(book); // unreadable: skipped, as before
+      _loadWaiters.remove(book.publication.id)?.complete(ok);
+      // Rebuild lists only when a skeleton turns into a book (or one goes
+      // away), not for every book loaded behind an already drawn row.
+      if (wasPlaceholder || !ok) notifyListeners();
+    }
+    _loadWorkerRunning = false;
+    notifyListeners(); // word counts, bookmarks etc. now that all are open
+  }
+
+  Future<bool> _loadBook(BookItem book) async {
+    if (book.isLoaded) return true;
+    try {
+      final bytes = await (await getBookFile(book.publication.id)).readAsBytes();
+      await book.session.dispatchCommand(OpenPublicationCommand(archiveBytes: bytes));
+      book
+        ..archiveBytes = bytes
+        .._isLoaded = true;
+      return true;
+    } catch (e) {
+      debugPrint('Error loading publication ${book.publication.id}: $e');
+      return false;
+    }
+  }
+
+  // --- cover cache ---------------------------------------------------------------
+  // Cover images are saved as small files so the library can draw them on
+  // launch before the book files are parsed.
+
+  Future<File> _coverFile(String pubId) async {
+    final dir = Directory('${(await _booksDir()).path}/covers');
+    if (!dir.existsSync()) dir.createSync(recursive: true);
+    return File('${dir.path}/$pubId');
+  }
+
+  /// The saved cover image for [pubId], or null when there isn't one.
+  Future<Uint8List?> readCachedCover(String pubId) async {
+    try {
+      final file = await _coverFile(pubId);
+      if (await file.exists()) return await file.readAsBytes();
+    } catch (e) {
+      debugPrint('Could not read cached cover: $e');
+    }
+    return null;
+  }
+
+  Future<void> writeCachedCover(String pubId, Uint8List bytes) async {
+    try {
+      await (await _coverFile(pubId)).writeAsBytes(bytes, flush: false);
+    } catch (e) {
+      debugPrint('Could not save cover: $e');
+    }
+  }
+
+  Future<void> _deleteCachedCover(String pubId) async {
+    try {
+      final file = await _coverFile(pubId);
+      if (await file.exists()) await file.delete();
+    } catch (_) {}
   }
 
   Future<void> _reloadFromDatabase() async {
@@ -275,11 +400,12 @@ class LibraryController extends ChangeNotifier {
     }
     _dedupe();
     notifyListeners();
+    _loadRemaining();
   }
 
-  /// Rebuilds the library entry for a stored publication from its file.
-  /// A book whose file is gone is skipped (it can't be read) rather than
-  /// shown with made-up content.
+  /// Lists a stored publication from the database, without reading its file
+  /// (see [ensureLoaded]). A book whose file is gone is skipped (it can't be
+  /// read) rather than shown with made-up content.
   Future<void> _restore(Publication pub) async {
     if (_books.any((b) => b.publication.id == pub.id)) return;
     try {
@@ -293,16 +419,17 @@ class LibraryController extends ChangeNotifier {
         debugPrint('Skipping ${pub.id}: its book file is missing');
         return;
       }
-      final bytes = await epub.readAsBytes();
-      final session = _newSession();
-      await session.dispatchCommand(OpenPublicationCommand(archiveBytes: bytes));
+      final saved = await _progressRepository.getProgress(pub.id);
       _books.add(BookItem(
         publication: pub,
         coverGradientStart: _coverStart,
         coverGradientEnd: _coverEnd,
-        session: session,
-        archiveBytes: bytes,
+        session: _newSession(),
+        archiveBytes: const [],
         folderPath: _bookFolderMap[pub.id],
+        savedProgress: saved == null ? null : saved.percentage / 100,
+        loaded: false,
+        coverCached: (await _coverFile(pub.id)).existsSync(),
       ));
     } catch (e) {
       debugPrint('Error restoring publication ${pub.id}: $e');
@@ -603,6 +730,7 @@ class LibraryController extends ChangeNotifier {
       await EpubUnpacker.remove(b.publication.id);
     }
     _lastOpened.clear();
+    _loadQueue.clear();
     _books.clear();
     _scannedFolders.clear();
     _bookFolderMap.clear();
@@ -625,6 +753,8 @@ class LibraryController extends ChangeNotifier {
     await _repository.deletePublication(publicationId);
     await AppDatabase.instance.clearBookData(publicationId).catchError((Object e) => debugPrint('Delete book data: $e'));
     await EpubUnpacker.remove(publicationId);
+    await _deleteCachedCover(publicationId);
+    _loadQueue.removeWhere((b) => b.publication.id == publicationId);
     _books.removeWhere((b) => b.publication.id == publicationId);
     _bookFolderMap.remove(publicationId);
     _persistFolderData();
