@@ -29,6 +29,7 @@ class AssetConstants {
   static const String formatFileFill = 'assets/icons/format_file_fill.svg';
   static const String formatFileOutline = 'assets/icons/format_file_outline.svg';
   static const String formatFileFold = 'assets/icons/format_file_fold.svg';
+  static const String iconBookmark = 'assets/icons/bookmark.svg';
 
   // Bottom navigation
   static const String navHome = 'assets/icons/nav_home.svg';
@@ -38,4 +39,5 @@ class AssetConstants {
   static const String navSaved = 'assets/icons/nav_saved.svg';
   static const String navSavedActive = 'assets/icons/nav_saved_active.svg';
   static const String navSettings = 'assets/icons/nav_settings.svg';
+  static const String navSettingsActive = 'assets/icons/nav_settings_active.svg';
 }

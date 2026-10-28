@@ -100,7 +100,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   onLeadingTap: _close,
                   middle: Row(
                     children: [
-                      const SizedBox(width: 34),
+                      const SizedBox(width: 16),
                       Expanded(
                         child: TextField(
                           controller: _searchController,

@@ -31,9 +31,23 @@ class SavedScreen extends StatefulWidget {
 class _SavedScreenState extends State<SavedScreen> {
   SavedTabSection _selectedTab = SavedTabSection.quotes;
 
+  late final _pages = PageController(initialPage: _selectedTab.index);
+
+  // Set while a tab tap animates the pages, so passing through a middle page
+  // doesn't flick the underline to it.
+  bool _jumping = false;
+
+  Future<void> _goToTab(SavedTabSection tab) async {
+    setState(() => _selectedTab = tab);
+    if (!_pages.hasClients) return;
+    _jumping = true;
+    await _pages.animateToPage(tab.index, duration: const Duration(milliseconds: 280), curve: Curves.easeOutCubic);
+    _jumping = false;
+  }
+
   // Each book's session, so highlights/bookmarks added or removed anywhere show here at once.
   final Map<String, StreamSubscription<Object?>> _subs = {};
-  // Swiped away and being removed (hidden at once; see Dismissible).
+  // Removed from the long-press menu (hidden at once, before the session updates).
   final Set<String> _hidden = {};
 
   @override
@@ -45,6 +59,7 @@ class _SavedScreenState extends State<SavedScreen> {
 
   @override
   void dispose() {
+    _pages.dispose();
     LibraryController.instance.removeListener(_watchSessions);
     for (final sub in _subs.values) {
       sub.cancel();
@@ -154,19 +169,6 @@ class _SavedScreenState extends State<SavedScreen> {
     }
   }
 
-  Widget _swipeToRemove({required Key key, required VoidCallback onRemove, required Widget child}) => Dismissible(
-    key: key,
-    direction: DismissDirection.endToStart,
-    background: Container(
-      alignment: Alignment.centerRight,
-      padding: const EdgeInsets.only(right: 20),
-      color: Colors.redAccent.withValues(alpha: 0.18),
-      child: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent),
-    ),
-    onDismissed: (_) => onRemove(),
-    child: child,
-  );
-
   void _openSearch() => openBookSearch(context);
 
   void _showAddBookDialog() {
@@ -214,19 +216,20 @@ class _SavedScreenState extends State<SavedScreen> {
               UnderlineTabs(
                 labels: [l10n.bookmark, l10n.quotes, l10n.notes],
                 selectedIndex: _selectedTab.index,
-                onSelected: (i) => setState(() => _selectedTab = SavedTabSection.values[i]),
+                onSelected: (i) => _goToTab(SavedTabSection.values[i]),
               ),
               Expanded(
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 200),
-                  child: KeyedSubtree(
-                    key: ValueKey(_selectedTab),
-                    child: _capWidth(switch (_selectedTab) {
-                      SavedTabSection.quotes => _buildQuotesView(allQuotes),
-                      SavedTabSection.bookmark => _buildBookmarksView(allBookmarks),
-                      SavedTabSection.notes => _buildNotesView(allNotes),
-                    }),
-                  ),
+                // Swipe sideways to move between Bookmark / Quotes / Notes.
+                child: PageView(
+                  controller: _pages,
+                  onPageChanged: (i) {
+                    if (!_jumping) setState(() => _selectedTab = SavedTabSection.values[i]);
+                  },
+                  children: [
+                    _capWidth(_buildBookmarksView(allBookmarks)),
+                    _capWidth(_buildQuotesView(allQuotes)),
+                    _capWidth(_buildNotesView(allNotes)),
+                  ],
                 ),
               ),
             ],
@@ -262,9 +265,8 @@ class _SavedScreenState extends State<SavedScreen> {
           _removeAnnotation(book, annotation);
         }
 
-        return _swipeToRemove(
+        return KeyedSubtree(
           key: ValueKey('q-${annotation.id}'),
-          onRemove: remove,
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: () => _open(book, annotation.locator),
@@ -312,9 +314,8 @@ class _SavedScreenState extends State<SavedScreen> {
           _removeBookmark(book, bm);
         }
 
-        return _swipeToRemove(
+        return KeyedSubtree(
           key: ValueKey('b-${bm.id}'),
-          onRemove: remove,
           child: ListTile(
             leading: Icon(Icons.bookmark_rounded, color: AppColors.figmaLime),
             title: Text(bm.title, style: GoogleFonts.sora(color: AppColors.fg, fontSize: 15)),
@@ -353,9 +354,8 @@ class _SavedScreenState extends State<SavedScreen> {
           _removeAnnotation(book, ann);
         }
 
-        return _swipeToRemove(
+        return KeyedSubtree(
           key: ValueKey('n-${ann.id}'),
-          onRemove: remove,
           child: ListTile(
             leading: Icon(Icons.note_alt_outlined, color: AppColors.figmaLime),
             title: Text(

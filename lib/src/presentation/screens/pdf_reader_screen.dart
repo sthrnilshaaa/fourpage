@@ -330,7 +330,7 @@ class _PdfReaderScreenState extends State<PdfReaderScreen>
               child: SafeArea(
                 bottom: false,
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 10, 15, 10),
+                  padding: const EdgeInsets.fromLTRB(6, 10, 15, 10),
                   child: SegmentedTopBar(
                     leading: const FigmaIcon(
                       AssetConstants.iconBack,

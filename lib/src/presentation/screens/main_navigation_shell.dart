@@ -9,6 +9,7 @@ import '../../core/constants/asset_constants.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme_controller.dart';
 import '../layout/app_nav_rail.dart';
+import '../platform/app_haptics.dart';
 import '../layout/window_class.dart';
 import '../widgets/app_chrome.dart';
 import '../widgets/update_dialog.dart';
@@ -61,10 +62,13 @@ class MainNavigationShellState extends State<MainNavigationShell> {
 
   void closeSearch() => setState(() => _searchOpen = false);
 
-  void _selectTab(int index) => setState(() {
-    _currentIndex = index;
-    _searchOpen = false;
-  });
+  void _selectTab(int index) {
+    AppHaptics.tick();
+    setState(() {
+      _currentIndex = index;
+      _searchOpen = false;
+    });
+  }
 
   // Keeps each tab's state when the window crosses a breakpoint.
   final _contentKey = GlobalKey();
@@ -76,8 +80,7 @@ class MainNavigationShellState extends State<MainNavigationShell> {
     SettingsScreen(),
   ];
 
-  // Icons exported from the Figma nav ("Frame 707"); Settings has no lime
-  // variant in the file, so its active state is the same glyph tinted lime.
+  // Icons exported from the Figma nav ("Frame 707").
   final List<NavDestination> _tabs = [
     NavDestination(
       label: l10n.home,
@@ -100,7 +103,7 @@ class MainNavigationShellState extends State<MainNavigationShell> {
     NavDestination(
       label: l10n.settings,
       icon: AssetConstants.navSettings,
-      activeIcon: AssetConstants.navSettings,
+      activeIcon: AssetConstants.navSettingsActive,
       size: const Size(22.1, 24.9),
     ),
   ];
@@ -318,9 +321,6 @@ class MainNavigationShellState extends State<MainNavigationShell> {
                                           ),
                                           width: _tabs[i].size.width,
                                           height: _tabs[i].size.height,
-                                          color: i == _currentIndex && i == 3
-                                              ? AppColors.figmaLime
-                                              : null,
                                         ),
                                       ),
                                     ),

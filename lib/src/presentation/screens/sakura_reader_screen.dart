@@ -1450,6 +1450,12 @@ class _SakuraReaderScreenState extends State<SakuraReaderScreen>
     if (mounted) setState(() => _chapterInfo = info);
   }
 
+  /// Href of the chapter being read, for the chapters sheet.
+  String? get _currentChapterHref {
+    final entry = _chapterInfo?['current'];
+    return entry is Map ? entry['href'] as String? : null;
+  }
+
   String? _chapterTitle(String key) {
     final entry = _chapterInfo?[key];
     if (entry is! Map) return null;
@@ -1612,8 +1618,9 @@ class _SakuraReaderScreenState extends State<SakuraReaderScreen>
                   style: GoogleFonts.dmSans(fontSize: 15, height: 21 / 15, color: AppColors.fg),
                 ),
                 Text(
-                  l10n.percentRead((_progress * 100).round()),
+                  _chapterTitle('current') ?? '',
                   maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.dmSans(fontSize: 13, height: 20 / 13, color: AppColors.figmaTextFaint),
                 ),
               ],
@@ -1658,6 +1665,7 @@ class _SakuraReaderScreenState extends State<SakuraReaderScreen>
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => SakuraTocSheet(
+        currentHref: _currentChapterHref,
         chapters: _toc,
         notes: _session.state.annotations,
         onNavigateToHref: (href) => _epubController.display(cfi: href),
@@ -1842,6 +1850,7 @@ class _SakuraReaderScreenState extends State<SakuraReaderScreen>
           contents: ReaderFocusReturn(
             focusNode: _readerFocus,
             child: SakuraTocSheet(
+              currentHref: _currentChapterHref,
               embedded: true,
               chapters: _toc,
               notes: _session.state.annotations,
@@ -2424,7 +2433,7 @@ class _SakuraReaderScreenState extends State<SakuraReaderScreen>
         child: SafeArea(
           bottom: false,
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 10, 15, 10),
+            padding: const EdgeInsets.fromLTRB(6, 10, 15, 10),
             child: SegmentedTopBar(
               leading: const FigmaIcon(AssetConstants.iconBack, width: 9, height: 14),
               onLeadingTap: () => Navigator.of(context).pop(),
@@ -2441,8 +2450,9 @@ class _SakuraReaderScreenState extends State<SakuraReaderScreen>
                       style: GoogleFonts.dmSans(fontSize: 15, height: 21 / 15, color: AppColors.fg),
                     ),
                     Text(
-                      l10n.percentRead((_progress * 100).round()),
+                      _chapterTitle('current') ?? '',
                       maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.dmSans(
                         fontSize: 13,
                         height: 20 / 13,

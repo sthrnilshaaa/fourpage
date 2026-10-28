@@ -36,6 +36,10 @@ class SakuraTocSheet extends StatefulWidget {
   /// Runs after a highlight is removed or put back (redraw the page).
   final Future<void> Function()? onAnnotationsChanged;
 
+  /// The chapter being read: marked as active and scrolled to the top of the
+  /// list when the sheet opens.
+  final String? currentHref;
+
   const SakuraTocSheet({
     super.key,
     required this.chapters,
@@ -44,6 +48,7 @@ class SakuraTocSheet extends StatefulWidget {
     this.embedded = false,
     this.session,
     this.onAnnotationsChanged,
+    this.currentHref,
   });
 
   @override
@@ -60,9 +65,73 @@ class _SakuraTocSheetState extends State<SakuraTocSheet> {
   // Swiped away and being removed; hidden at once so the list never shows them again mid-removal.
   final Set<String> _hidden = {};
 
+  final _chapterScroll = ScrollController();
+
+  /// The current chapter's place in the list: top-level index, and child index when nested.
+  (int, int?)? _current;
+
+  /// Row height (73) plus the divider under each top-level entry.
+  static const double _rowHeight = 73;
+
+  static String _path(String href) {
+    var p = href.split('#').first;
+    while (p.startsWith('./') || p.startsWith('/')) {
+      p = p.substring(p.startsWith('./') ? 2 : 1);
+    }
+    return p;
+  }
+
+  static bool _samePlace(String a, String b) {
+    final pa = _path(a), pb = _path(b);
+    if (pa.isEmpty || pb.isEmpty) return false;
+    return pa == pb || pa.endsWith('/$pb') || pb.endsWith('/$pa');
+  }
+
+  /// Finds [href] in the chapter tree: an exact match first, else the first entry in the same file.
+  (int, int?)? _locate(String href) {
+    (int, int?)? sameFile;
+    for (final (i, item) in widget.chapters.indexed) {
+      if (item.href == href) return (i, null);
+      sameFile ??= _samePlace(item.href, href) ? (i, null) : null;
+      for (final (j, child) in item.children.indexed) {
+        if (child.href == href) return (i, j);
+        sameFile ??= _samePlace(child.href, href) ? (i, j) : null;
+      }
+    }
+    return sameFile;
+  }
+
+  bool _isCurrent(int index, [int? child]) => _current != null && _current!.$1 == index && _current!.$2 == child;
+
+  void _findCurrent() {
+    final href = widget.currentHref;
+    _current = href == null || href.isEmpty ? null : _locate(href);
+    final current = _current;
+    if (current == null) return;
+    final (i, j) = current;
+    if (j != null) _expanded.add(widget.chapters[i]);
+    // Put it at the top of the list without changing the order.
+    final offset = i * (_rowHeight + 1) + (j == null ? 0 : (j + 1) * _rowHeight);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_chapterScroll.hasClients) return;
+      final position = _chapterScroll.position;
+      _chapterScroll.jumpTo(offset.clamp(0.0, position.maxScrollExtent));
+    });
+  }
+
+  @override
+  void didUpdateWidget(SakuraTocSheet old) {
+    super.didUpdateWidget(old);
+    // Chapters still loading when the sheet opened, or the place moved (side pane).
+    if (old.currentHref != widget.currentHref || (old.chapters.isEmpty && widget.chapters.isNotEmpty)) {
+      _findCurrent();
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+    _findCurrent();
     _sessionSub = widget.session?.stateStream.listen((state) {
       if (!mounted) return;
       final live = {for (final a in state.annotations) a.id, for (final b in state.bookmarks) b.id};
@@ -72,6 +141,7 @@ class _SakuraTocSheetState extends State<SakuraTocSheet> {
 
   @override
   void dispose() {
+    _chapterScroll.dispose();
     _sessionSub?.cancel();
     super.dispose();
   }
@@ -201,7 +271,9 @@ class _SakuraTocSheetState extends State<SakuraTocSheet> {
       key: const ValueKey('chapters'),
       thickness: 6,
       radius: const Radius.circular(3),
+      controller: _chapterScroll,
       child: ListView.separated(
+        controller: _chapterScroll,
         padding: const EdgeInsets.fromLTRB(23, 0, 22, 24),
         itemCount: widget.chapters.length,
         separatorBuilder: (_, _) => Divider(height: 1, thickness: 1, color: AppColors.figmaDivider),
@@ -220,6 +292,7 @@ class _SakuraTocSheetState extends State<SakuraTocSheet> {
           title: item.title,
           subtitle: l10n.sectionLabel((index + 1).toString().padLeft(2, '0')),
           indent: 9,
+          active: _isCurrent(index),
           onTap: () => _go(item.href),
           trailing: expandable
               ? GestureDetector(
@@ -249,6 +322,7 @@ class _SakuraTocSheetState extends State<SakuraTocSheet> {
                         title: child.title,
                         subtitle: l10n.sectionLabel('${(index + 1).toString().padLeft(2, '0')}.${i + 1}'),
                         indent: 42,
+                        active: _isCurrent(index, i),
                         onTap: () => _go(child.href),
                       ),
                   ],
@@ -265,16 +339,33 @@ class _SakuraTocSheetState extends State<SakuraTocSheet> {
     required String subtitle,
     required double indent,
     required VoidCallback onTap,
+    bool active = false,
     Widget? trailing,
   }) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: SizedBox(
-        height: 73,
+        height: _rowHeight,
         child: Row(
           children: [
-            SizedBox(width: indent),
+            // The chapter being read: a lime bar at the left edge.
+            SizedBox(
+              width: indent,
+              child: active
+                  ? Align(
+                      alignment: Alignment.centerLeft,
+                      child: Container(
+                        width: 3,
+                        height: 34,
+                        decoration: BoxDecoration(
+                          color: AppColors.figmaLime,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    )
+                  : null,
+            ),
             Expanded(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -284,7 +375,11 @@ class _SakuraTocSheetState extends State<SakuraTocSheet> {
                     title.isNotEmpty ? title : l10n.untitled,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.sora(fontSize: 15, height: 25 / 15, color: AppColors.fg),
+                    style: GoogleFonts.sora(
+                      fontSize: 15,
+                      height: 25 / 15,
+                      color: active ? AppColors.figmaLime : AppColors.fg,
+                    ),
                   ),
                   Text(
                     subtitle,

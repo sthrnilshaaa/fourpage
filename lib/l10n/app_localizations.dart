@@ -301,7 +301,7 @@ abstract class AppLocalizations {
   /// No description provided for @recentReading.
   ///
   /// In en, this message translates to:
-  /// **'Recent Reading'**
+  /// **'Continue'**
   String get recentReading;
 
   /// No description provided for @pickUpWhereYouLeftOff.
@@ -1021,7 +1021,7 @@ abstract class AppLocalizations {
   /// No description provided for @thisFolderCanTBeRead.
   ///
   /// In en, this message translates to:
-  /// **'This folder can\'t be read. Allow folder access in Settings, or choose files instead.'**
+  /// **'This folder can\'t be read. Allow folder access in Settings, or pick books instead.'**
   String get thisFolderCanTBeRead;
 
   /// No description provided for @recentlyAdded.
@@ -1081,7 +1081,7 @@ abstract class AppLocalizations {
   /// No description provided for @chooseFiles.
   ///
   /// In en, this message translates to:
-  /// **'Choose files'**
+  /// **'Pick books'**
   String get chooseFiles;
 
   /// No description provided for @scanAFolder.
@@ -1819,7 +1819,7 @@ abstract class AppLocalizations {
   /// No description provided for @guideImportFiles.
   ///
   /// In en, this message translates to:
-  /// **'Tap + at the top of Home or Library, then Choose files. EPUB and PDF open as they are; TXT, Markdown, HTML and DOCX are turned into books.'**
+  /// **'Tap + at the top of Home or Library, then Pick books. EPUB and PDF open as they are; TXT, Markdown, HTML and DOCX are turned into books.'**
   String get guideImportFiles;
 
   /// No description provided for @guideScanFolder.
@@ -1843,7 +1843,7 @@ abstract class AppLocalizations {
   /// No description provided for @guideRecent.
   ///
   /// In en, this message translates to:
-  /// **'Recent Reading shows the books you opened last. Tap one to pick up where you left off.'**
+  /// **'Continue shows the books you opened last. Tap one to pick up where you left off.'**
   String get guideRecent;
 
   /// No description provided for @guideSearchBooks.

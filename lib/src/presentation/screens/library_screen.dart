@@ -40,6 +40,20 @@ class _LibraryScreenState extends State<LibraryScreen> {
   /// Book shown in the expanded-width details pane (mouse selection).
   BookItem? _selected;
 
+  final _pages = PageController();
+
+  // Set while a tab tap animates the pages, so passing through a middle page
+  // doesn't flick the underline to it.
+  bool _jumping = false;
+
+  Future<void> _goToTab(LibraryTabSection tab) async {
+    setState(() => _selectedTab = tab);
+    if (!_pages.hasClients) return;
+    _jumping = true;
+    await _pages.animateToPage(tab.index, duration: const Duration(milliseconds: 280), curve: Curves.easeOutCubic);
+    _jumping = false;
+  }
+
   // Shelf tint colours from the Figma file (Rectangle 578/579/580, 50% alpha).
   static const _shelfTints = [Color(0x80097C9D), Color(0x80302E5F), Color(0x802E5F4B)];
 
@@ -109,24 +123,25 @@ class _LibraryScreenState extends State<LibraryScreen> {
                 labels: [l10n.allBooks, l10n.shelves, l10n.folders],
                 selectedIndex: _selectedTab.index,
                 onSelectedTap: (_) => _showSortSheet(),
-                onSelected: (i) => setState(() {
+                onSelected: (i) {
                   if (i == 0 && _selectedTab == LibraryTabSection.allBooks) {
-                    _folderFilter = null;
+                    setState(() => _folderFilter = null);
                   }
-                  _selectedTab = LibraryTabSection.values[i];
-                }),
+                  _goToTab(LibraryTabSection.values[i]);
+                },
               ),
               Expanded(
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 200),
-                  child: KeyedSubtree(
-                    key: ValueKey((_selectedTab, _folderFilter)),
-                    child: switch (_selectedTab) {
-                      LibraryTabSection.allBooks => _buildAllBooksView(books),
-                      LibraryTabSection.shelves => _buildShelvesView(books),
-                      LibraryTabSection.folders => _buildFoldersView(books),
-                    },
-                  ),
+                // Swipe sideways to move between All books / Shelves / Folders.
+                child: PageView(
+                  controller: _pages,
+                  onPageChanged: (i) {
+                    if (!_jumping) setState(() => _selectedTab = LibraryTabSection.values[i]);
+                  },
+                  children: [
+                    KeyedSubtree(key: ValueKey(_folderFilter), child: _buildAllBooksView(books)),
+                    _buildShelvesView(books),
+                    _buildFoldersView(books),
+                  ],
                 ),
               ),
             ],
@@ -456,6 +471,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
   void dispose() {
     _autoScroll?.cancel();
     _shelvesScroll.dispose();
+    _pages.dispose();
     super.dispose();
   }
 
@@ -490,10 +506,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
               if (otherCount > 0) l10n.other: otherCount,
             },
             onTap: () {
-              setState(() {
-                _folderFilter = folder;
-                _selectedTab = LibraryTabSection.allBooks;
-              });
+              setState(() => _folderFilter = folder);
+              _goToTab(LibraryTabSection.allBooks);
             },
           ),
         ),
@@ -515,10 +529,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
               if (otherCount > 0) l10n.other: otherCount,
             },
             onTap: () {
-              setState(() {
-                _folderFilter = null;
-                _selectedTab = LibraryTabSection.allBooks;
-              });
+              setState(() => _folderFilter = null);
+              _goToTab(LibraryTabSection.allBooks);
             },
           ),
         ),

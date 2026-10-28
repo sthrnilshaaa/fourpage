@@ -26,6 +26,7 @@ class FigmaIcon extends StatelessWidget {
     AssetConstants.navHomeActive,
     AssetConstants.navLibraryActive,
     AssetConstants.navSavedActive,
+    AssetConstants.navSettingsActive,
   };
 
   @override
@@ -194,7 +195,7 @@ class BrowseTopBar extends StatelessWidget {
       child: SegmentedTopBar(
         leading: AppLogoMark(),
         middle: Padding(
-          padding: EdgeInsets.only(left: 32),
+          padding: EdgeInsets.only(left: 16),
           child: Text(l10n.searchBooks, style: AppText.searchPlaceholder),
         ),
         trailing: FigmaIcon(

@@ -140,6 +140,11 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
   final _readerFocus = FocusNode(debugLabel: 'native-reader');
   Timer? _topHideTimer;
   Timer? _bottomHideTimer;
+
+  /// The percentage bubble over the progress bar shows briefly after a page
+  /// change or other activity, then fades out.
+  bool _bubbleShown = false;
+  Timer? _bubbleTimer;
   Timer? _loadTimeoutTimer;
   static const _topAutoHide = Duration(seconds: 3);
   static const _bottomAutoHide = Duration(seconds: 5);
@@ -407,6 +412,7 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
     _imageOrder.clear();
     _nextOf.clear();
     _prevOf.clear();
+    _pageRanges.clear();
   }
 
   void _dropImages() {
@@ -421,6 +427,7 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
     _imageOrder.clear();
     _nextOf.clear();
     _prevOf.clear();
+    _pageRanges.clear();
     _tileImages.clear();
     _tileReady.clear();
   }
@@ -464,6 +471,7 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
       return; // a relayout replaced the layout meanwhile
     }
     if (!mounted || _page != p) return;
+    if (_locatorPage != null && _locatorPage != p) _flashBubble();
     _locatorPage = p;
     setState(() {
       _lastLocator = loc;
@@ -588,6 +596,15 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
 
   void _onUserActivity() {
     if (_controlsVisible) _scheduleAutoHide();
+    _flashBubble();
+  }
+
+  void _flashBubble() {
+    _bubbleTimer?.cancel();
+    _bubbleTimer = Timer(const Duration(milliseconds: 1400), () {
+      if (mounted) setState(() => _bubbleShown = false);
+    });
+    if (!_bubbleShown && mounted) setState(() => _bubbleShown = true);
   }
 
   void _autoHide({required bool top}) {
@@ -627,6 +644,7 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
     ReaderSystemBars.show();
     _topHideTimer?.cancel();
     _bottomHideTimer?.cancel();
+    _bubbleTimer?.cancel();
     _loadTimeoutTimer?.cancel();
     // Leaving within the save debounce must not drop the last position.
     if (_positionSaveDebounce?.isActive ?? false) {
@@ -1036,6 +1054,35 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
     }).toList();
   }
 
+  /// Chapter text range of each page shown in the zoomed-out strip, for its bookmark ribbon.
+  final Map<NativePage, ({String chapter, int start, int end})> _pageRanges = {};
+
+  Future<void> _loadPageRange(NativePage p) async {
+    final engine = _engine;
+    if (engine == null || _pageRanges.containsKey(p)) return;
+    try {
+      final loc = await engine.locator(p);
+      var end = 1 << 30;
+      final next = await engine.step(p, 1);
+      if (next != null && next.resourceIndex == p.resourceIndex) end = (await engine.locator(next)).charOffset;
+      if (!mounted) return;
+      setState(() => _pageRanges[p] = (chapter: loc.href.split('#').first, start: loc.charOffset, end: end));
+    } catch (_) {
+      // Layout replaced meanwhile; the strip asks again.
+    }
+  }
+
+  bool _isBookmarked(NativePage? p) {
+    final range = p == null ? null : _pageRanges[p];
+    if (range == null) return false;
+    final end = range.end > range.start ? range.end : range.start + 1;
+    return _session.state.bookmarks.any((b) {
+      if (b.locator.href.split('#').first != range.chapter) return false;
+      final at = b.locator.locations.charOffset;
+      return at != null && at >= range.start && at < end;
+    });
+  }
+
   /// Bookmarks the page, or removes its bookmark when it has one; both can be undone.
   Future<void> _toggleBookmark() async {
     final loc = _lastLocator;
@@ -1366,6 +1413,7 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
       ..clear()
       ..[_stripBase] = page;
     _stripIndex = _stripBase;
+    _loadPageRange(page);
     setState(() {
       _zoomed = true;
       _zoomShrunk = false;
@@ -1390,6 +1438,7 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
             final n = await _neighbour(from, dir);
             if (!mounted || session != _zoomSession) return;
             _stripAt[idx] = n;
+            if (n != null) _loadPageRange(n);
             if (n != null && _ready[n] == null) await _imageFor(n);
           } finally {
             if (mounted) setState(() => _stripPending.remove(idx));
@@ -1397,6 +1446,7 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
         } else {
           final n = _stripAt[idx];
           if (n == null) return;
+          _loadPageRange(n);
           if (_ready[n] == null) {
             await _imageFor(n);
             if (mounted) setState(() {});
@@ -1434,6 +1484,12 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
     if (mounted && _page?.resourceIndex == page.resourceIndex) setState(() => _chapterInfo = map);
   }
 
+  /// Href of the chapter being read, for the chapters sheet.
+  String? get _currentChapterHref {
+    final entry = _chapterInfo?['current'];
+    return entry is Map ? entry['href'] as String? : null;
+  }
+
   String? _chapterTitle(String key) {
     final entry = _chapterInfo?[key];
     if (entry is! Map) return null;
@@ -1458,6 +1514,7 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
     if (page == null) return;
     if (_ready[page] == null) await _imageFor(page);
     if (!mounted || session != _zoomSession) return;
+    _loadPageRange(page);
     setState(() {
       _stripAt
         ..clear()
@@ -1879,8 +1936,9 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
                   style: GoogleFonts.dmSans(fontSize: 15, height: 21 / 15, color: AppColors.fg),
                 ),
                 Text(
-                  l10n.percentRead((_progress * 100).round()),
+                  _chapterTitle('current') ?? '',
                   maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.dmSans(fontSize: 13, height: 20 / 13, color: AppColors.figmaTextFaint),
                 ),
               ],
@@ -1940,6 +1998,7 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => SakuraTocSheet(
+        currentHref: _currentChapterHref,
         chapters: _toc,
         notes: _session.state.annotations,
         onNavigateToHref: _navigateToHref,
@@ -2139,6 +2198,7 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
           contents: ReaderFocusReturn(
             focusNode: _readerFocus,
             child: SakuraTocSheet(
+              currentHref: _currentChapterHref,
               embedded: true,
               chapters: _toc,
               notes: _session.state.annotations,
@@ -2408,15 +2468,35 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
                       ),
                     ],
                   ),
-                  child: image != null
-                      ? RawImage(image: image, fit: BoxFit.fill)
-                      : pending
-                      ? ReaderPageSkeleton(
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      if (image != null)
+                        RawImage(image: image, fit: BoxFit.fill)
+                      else if (pending)
+                        ReaderPageSkeleton(
                           pageColor: pageColor,
                           inkColor: SakuraEpubMapper.textColorFor(_theme),
                           padding: AppPreferences.instance.readerPadding.clamp(12.0, 48.0),
-                        )
-                      : null,
+                        ),
+                      // Bookmarked page: a ribbon hanging from the card's top edge.
+                      if (_isBookmarked(_stripAt[index]))
+                        Positioned(
+                          left: 34 / _stripScale,
+                          top: -4 / _stripScale,
+                          child: AnimatedOpacity(
+                            duration: _zoomDuration,
+                            opacity: _zoomShrunk ? 1 : 0,
+                            child: FigmaIcon(
+                              AssetConstants.iconBookmark,
+                              width: 12 * 20 / 21 / _stripScale,
+                              height: 18 / _stripScale,
+                              color: SakuraEpubMapper.textColorFor(_theme),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -2722,7 +2802,7 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
         child: SafeArea(
           bottom: false,
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 10, 15, 10),
+            padding: const EdgeInsets.fromLTRB(6, 10, 15, 10),
             child: SegmentedTopBar(
               leading: const FigmaIcon(AssetConstants.iconBack, width: 9, height: 14),
               onLeadingTap: () => Navigator.of(context).pop(),
@@ -2739,8 +2819,9 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
                       style: GoogleFonts.dmSans(fontSize: 15, height: 21 / 15, color: AppColors.fg),
                     ),
                     Text(
-                      l10n.percentRead((_progress * 100).round()),
+                      _chapterTitle('current') ?? '',
                       maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.dmSans(
                         fontSize: 13,
                         height: 20 / 13,
@@ -2813,18 +2894,10 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
     final seeking = _seekPreview != null;
     final shown = (_seekPreview ?? _progress).clamp(0.0, 1.0);
     final percent = (shown * 100).round();
-    final book = widget.book.publication.metadata.title;
-    final chapterTitle = _chapterTitle('current');
-    final chapter = chapterTitle == book ? null : chapterTitle;
     final total = _globalPage >= 0 && _pagesLeft >= 0 ? _globalPage + _pagesLeft + 1 : -1;
-    final String position;
-    if (total <= 0) {
-      position = l10n.percentValue(percent);
-    } else {
-      // While seeking, the page the drag would land on.
-      final page = seeking ? (shown * (total - 1)).round() + 1 : _globalPage + 1;
-      position = l10n.pageOfTotal(page, total);
-    }
+    // While seeking, the page the drag would land on.
+    final page = seeking ? (shown * (total - 1)).round() + 1 : _globalPage + 1;
+    final position = total <= 0 ? null : l10n.pageOfTotal(page, total);
     final textColor = AppColors.fg.withValues(alpha: 0.5);
     final background = AppColors.overviewBackground;
     // On black: bar #111, fill and bubble #191919.
@@ -2901,22 +2974,27 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
                             child: Row(
                               children: [
                                 Expanded(
-                                  child: _FitTitle(
-                                    book: book,
-                                    chapter: chapter,
-                                    separator: l10n.titleSeparator,
-                                    color: textColor,
+                                  child: Text(
+                                    l10n.percentValue(percent),
+                                    maxLines: 1,
+                                    style: GoogleFonts.sora(
+                                      fontSize: 13,
+                                      color: seeking ? AppColors.accentLime : textColor,
+                                      fontFeatures: const [ui.FontFeature.tabularFigures()],
+                                    ),
                                   ),
                                 ),
-                                const SizedBox(width: 12),
-                                Text(
-                                  position,
-                                  style: GoogleFonts.sora(
-                                    fontSize: 13,
-                                    color: seeking ? AppColors.accentLime : textColor,
-                                    fontFeatures: const [ui.FontFeature.tabularFigures()],
+                                if (position != null) ...[
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    position,
+                                    style: GoogleFonts.sora(
+                                      fontSize: 13,
+                                      color: seeking ? AppColors.accentLime : textColor,
+                                      fontFeatures: const [ui.FontFeature.tabularFigures()],
+                                    ),
                                   ),
-                                ),
+                                ],
                               ],
                             ),
                           ),
@@ -2931,7 +3009,10 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
                 width: tipWidth,
                 bottom: _barHeight + 6,
                 child: IgnorePointer(
-                  child: Center(
+                  child: AnimatedOpacity(
+                    duration: const Duration(milliseconds: 220),
+                    opacity: seeking || _bubbleShown ? 1 : 0,
+                    child: Center(
                     child: _PercentBubble(
                       label: l10n.percentValue(percent),
                       color: bubbleColor,
@@ -2940,6 +3021,7 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
                           ? AppColors.accentLime.withValues(alpha: 0.35)
                           : AppColors.fg.withValues(alpha: 0.05),
                     ),
+                  ),
                   ),
                 ),
               ),
@@ -3199,67 +3281,6 @@ class _ReaderMenuGlyph extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-/// "Book / Chapter" on one line of the progress bar. Shrinks from 13 to 11
-/// px to fit; still too long, the book name is cut first (to about 45% of
-/// the room), then the chapter name.
-class _FitTitle extends StatelessWidget {
-  final String book;
-  final String? chapter;
-  final String separator;
-  final Color color;
-  const _FitTitle({required this.book, required this.chapter, required this.separator, required this.color});
-
-  static const double _maxSize = 13;
-  static const double _minSize = 11;
-
-  @override
-  Widget build(BuildContext context) {
-    final scaler = MediaQuery.textScalerOf(context);
-    final direction = Directionality.of(context);
-    final chapter = this.chapter;
-    final full = chapter == null ? book : '$book$separator$chapter';
-    TextStyle styleAt(double size) => GoogleFonts.sora(fontSize: size, color: color);
-    double widthOf(String text, TextStyle style) {
-      final painter = TextPainter(
-        text: TextSpan(text: text, style: style),
-        textDirection: direction,
-        textScaler: scaler,
-        maxLines: 1,
-      )..layout();
-      final w = painter.width;
-      painter.dispose();
-      return w;
-    }
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final room = constraints.maxWidth;
-        for (var size = _maxSize; size >= _minSize; size -= 0.5) {
-          if (widthOf(full, styleAt(size)) <= room) {
-            return Text(full, maxLines: 1, softWrap: false, style: styleAt(size));
-          }
-        }
-        final style = styleAt(_minSize);
-        Widget cut(String text) =>
-            Text(text, maxLines: 1, softWrap: false, overflow: TextOverflow.ellipsis, style: style);
-        if (chapter == null) return cut(book);
-        // Book gets what the chapter leaves, but never less than ~45% (unless it needs less).
-        final sepW = widthOf(separator, style);
-        final chapterW = widthOf(chapter, style);
-        final bookW = widthOf(book, style);
-        final bookRoom = math.min(bookW, math.max(room * 0.45, room - sepW - chapterW)).ceilToDouble();
-        return Row(
-          children: [
-            SizedBox(width: bookRoom, child: cut(book)),
-            Text(separator, maxLines: 1, softWrap: false, style: style),
-            Expanded(child: cut(chapter)),
-          ],
-        );
-      },
     );
   }
 }

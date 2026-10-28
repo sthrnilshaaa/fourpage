@@ -182,7 +182,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get unknownAuthor => 'Unknown Author';
 
   @override
-  String get recentReading => 'Recent Reading';
+  String get recentReading => 'Continue';
 
   @override
   String get pickUpWhereYouLeftOff => 'Pick up where you left off';
@@ -558,7 +558,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get thisFolderCanTBeRead =>
-      'This folder can\'t be read. Allow folder access in Settings, or choose files instead.';
+      'This folder can\'t be read. Allow folder access in Settings, or pick books instead.';
 
   @override
   String get recentlyAdded => 'Recently added';
@@ -588,7 +588,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get importing => 'Importing…';
 
   @override
-  String get chooseFiles => 'Choose files';
+  String get chooseFiles => 'Pick books';
 
   @override
   String get scanAFolder => 'Scan a folder';
@@ -1041,7 +1041,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get guideImportFiles =>
-      'Tap + at the top of Home or Library, then Choose files. EPUB and PDF open as they are; TXT, Markdown, HTML and DOCX are turned into books.';
+      'Tap + at the top of Home or Library, then Pick books. EPUB and PDF open as they are; TXT, Markdown, HTML and DOCX are turned into books.';
 
   @override
   String get guideScanFolder =>
@@ -1056,7 +1056,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get guideRecent =>
-      'Recent Reading shows the books you opened last. Tap one to pick up where you left off.';
+      'Continue shows the books you opened last. Tap one to pick up where you left off.';
 
   @override
   String get guideSearchBooks =>
