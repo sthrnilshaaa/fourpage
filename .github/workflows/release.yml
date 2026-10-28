@@ -96,12 +96,31 @@ jobs:
           (cd out && sha256sum *.apk > SHA256SUMS.txt)
           ls -l out
 
+      # Release notes are this version's section of CHANGELOG.md (also what
+      # the in-app updater shows). Falls back to GitHub's commit list when
+      # the section is missing.
+      - name: Release notes from CHANGELOG.md
+        run: |
+          awk -v v="$VERSION" '
+            index($0, "## [" v "]") == 1 { found = 1; next }
+            found && /^## \[/ { exit }
+            found { print }
+          ' CHANGELOG.md | sed -e '/./,$!d' > release_notes.md
+          if [ -s release_notes.md ]; then
+            echo "HAS_NOTES=true" >> "$GITHUB_ENV"
+            cat release_notes.md
+          else
+            echo "::warning::No CHANGELOG.md section for $VERSION; using generated notes"
+            echo "HAS_NOTES=false" >> "$GITHUB_ENV"
+          fi
+
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.TAG }}
           name: Fourpage ${{ env.TAG }}
-          generate_release_notes: true
+          body_path: ${{ env.HAS_NOTES == 'true' && 'release_notes.md' || '' }}
+          generate_release_notes: ${{ env.HAS_NOTES != 'true' }}
           files: |
             out/*.apk
             out/SHA256SUMS.txt
