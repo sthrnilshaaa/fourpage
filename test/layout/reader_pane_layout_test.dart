@@ -88,4 +88,23 @@ void main() {
     expect(seen.size, const Size(1400 - 300 - 320, 900 - 56 - 44));
     expect(seen.padding, EdgeInsets.zero);
   });
+
+  testWidgets('list tiles in a pane get their ink on the pane surface', (tester) async {
+    tester.view.physicalSize = const Size(1400, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: ReaderPaneLayout(
+          book: const SizedBox.expand(),
+          contents: ListView(children: [ListTile(title: const Text('Chapter'), onTap: () {})]),
+          focusMode: false,
+          contentsOpen: true,
+          settingsOpen: true,
+          background: Colors.black,
+        ),
+      ),
+    ));
+    expect(tester.takeException(), isNull);
+  });
 }

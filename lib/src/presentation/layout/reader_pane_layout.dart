@@ -52,10 +52,10 @@ class _ReaderPaneLayoutState extends State<ReaderPaneLayout> {
     final side = BorderSide(color: AppColors.dividerSubtle);
     return Container(
       width: width,
-      color: AppColors.sheetSurface,
       // Painted on top so the hairline doesn't eat into the pane's width.
       foregroundDecoration: BoxDecoration(border: left ? Border(right: side) : Border(left: side)),
-      child: child,
+      // A Material surface, so list tiles in the pane show their ink.
+      child: Material(color: AppColors.sheetSurface, child: child),
     );
   }
 
