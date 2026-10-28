@@ -2433,12 +2433,12 @@ class _SakuraReaderScreenState extends State<SakuraReaderScreen>
         child: SafeArea(
           bottom: false,
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(6, 10, 15, 10),
+            padding: const EdgeInsets.fromLTRB(16, 10, 15, 10),
             child: SegmentedTopBar(
               leading: const FigmaIcon(AssetConstants.iconBack, width: 9, height: 14),
               onLeadingTap: () => Navigator.of(context).pop(),
               middle: Padding(
-                padding: const EdgeInsets.only(left: 29, right: 12),
+                padding: const EdgeInsets.only(left: 24, right: 12),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,

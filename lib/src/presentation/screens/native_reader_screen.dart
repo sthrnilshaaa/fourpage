@@ -2449,7 +2449,11 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
               child: SizedBox(
                 width: media.size.width,
                 height: pageH,
-                child: AnimatedContainer(
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  fit: StackFit.expand,
+                  children: [
+                AnimatedContainer(
                   duration: _zoomDuration,
                   curve: Curves.easeOutCubic,
                   clipBehavior: Clip.antiAlias,
@@ -2479,24 +2483,28 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
                           inkColor: SakuraEpubMapper.textColorFor(_theme),
                           padding: AppPreferences.instance.readerPadding.clamp(12.0, 48.0),
                         ),
-                      // Bookmarked page: a ribbon hanging from the card's top edge.
-                      if (_isBookmarked(_stripAt[index]))
-                        Positioned(
-                          left: 34 / _stripScale,
-                          top: -4 / _stripScale,
-                          child: AnimatedOpacity(
-                            duration: _zoomDuration,
-                            opacity: _zoomShrunk ? 1 : 0,
-                            child: FigmaIcon(
-                              AssetConstants.iconBookmark,
-                              width: 12 * 20 / 21 / _stripScale,
-                              height: 18 / _stripScale,
-                              color: SakuraEpubMapper.textColorFor(_theme),
-                            ),
-                          ),
-                        ),
                     ],
                   ),
+                ),
+                    // Bookmarked page: a ribbon pinned near the top-left corner,
+                    // poking a little above the card's edge. It sits outside the
+                    // card so the card's rounded clip doesn't cut it off.
+                    if (_isBookmarked(_stripAt[index]))
+                      Positioned(
+                        left: 30 / _stripScale,
+                        top: -7 / _stripScale,
+                        child: AnimatedOpacity(
+                          duration: _zoomDuration,
+                          opacity: _zoomShrunk ? 1 : 0,
+                          child: FigmaIcon(
+                            AssetConstants.iconBookmark,
+                            width: 20 / _stripScale,
+                            height: 21 / _stripScale,
+                            color: SakuraEpubMapper.textColorFor(_theme),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ),
@@ -2802,12 +2810,12 @@ class _NativeReaderScreenState extends State<NativeReaderScreen>
         child: SafeArea(
           bottom: false,
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(6, 10, 15, 10),
+            padding: const EdgeInsets.fromLTRB(16, 10, 15, 10),
             child: SegmentedTopBar(
               leading: const FigmaIcon(AssetConstants.iconBack, width: 9, height: 14),
               onLeadingTap: () => Navigator.of(context).pop(),
               middle: Padding(
-                padding: const EdgeInsets.only(left: 29, right: 12),
+                padding: const EdgeInsets.only(left: 24, right: 12),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
