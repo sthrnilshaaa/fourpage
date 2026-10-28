@@ -6,6 +6,25 @@ All notable changes to Fourpage. The format follows
 
 ## [Unreleased]
 
+## [1.0.6] - 2026-10-28
+
+### Added
+- The screen stays on while a book is open.
+- On phones with a 90/120 Hz display, the app runs at the fastest refresh
+  rate.
+
+### Changed
+- The library opens instantly: books are listed right away and their files
+  load in the background. A book still loading shows its own placeholder,
+  replaced as soon as it's ready, instead of one placeholder for the whole
+  screen. Opening a book that hasn't loaded yet loads it first.
+- New page overview progress bar: book and chapter names, page count, and a
+  percentage bubble at your position. Chapter pills only show while
+  dragging between chapters.
+
+### Fixed
+- Tappable rows in the reader's side panes show their tap highlight.
+
 ## [1.0.5] - 2026-10-23
 
 ### Changed
