@@ -8,6 +8,7 @@
 
 [![CI](https://github.com/sthrnilshaaa/fourpage/actions/workflows/ci.yml/badge.svg)](https://github.com/sthrnilshaaa/fourpage/actions/workflows/ci.yml)
 [![License: GPL v3](https://img.shields.io/badge/license-GPLv3-blue.svg)](LICENSE)
+![Downloads](https://img.shields.io/github/downloads/SthrNilshaaa/fourpage/total?style=for-the-badge&label=Downloads&color=blue&labelColor=24292f&logo=github)
 [![GitHub stars](https://img.shields.io/github/stars/sthrnilshaaa/fourpage?style=social)](https://github.com/sthrnilshaaa/fourpage)
 [![Support on Ko-fi](https://img.shields.io/badge/Ko--fi-support-ff5e5b?logo=ko-fi&logoColor=white)](https://ko-fi.com/L2L124TL7L)
 
