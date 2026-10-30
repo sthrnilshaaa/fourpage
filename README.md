@@ -85,17 +85,7 @@ git clone https://github.com/sthrnilshaaa/fourpage.git
 cd fourpage
 flutter pub get
 flutter run                     # Android
-flutter test                    # unit & widget tests
 ```
-
-### Release build
-
-```sh
-flutter build apk --release --split-per-abi
-```
-
-Release builds are signed with the key in `android/key.properties` (git-ignored)
-when present, otherwise with the debug key.
 
 ## Project structure
 
