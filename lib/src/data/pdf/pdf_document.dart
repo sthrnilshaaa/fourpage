@@ -38,4 +38,26 @@ class PdfDocumentHandle {
   }
 
   Future<void> close() => _channel.invokeMethod<void>('close', {'id': _id});
+
+  /// PNG bytes of the first page of the PDF at [path], for use as a cover.
+  /// Returns null for empty, encrypted or otherwise unreadable PDFs. The
+  /// document is closed again even when rendering fails, so cover generation
+  /// never leaves a renderer open.
+  static Future<Uint8List?> renderCover(String path, {int width = 240}) async {
+    PdfDocumentHandle? doc;
+    try {
+      doc = await open(path);
+      if (doc.pageCount == 0) return null;
+      return await doc.renderPage(0, width);
+    } catch (e) {
+      debugPrint('Could not render PDF cover: $e');
+      return null;
+    } finally {
+      if (doc != null) {
+        try {
+          await doc.close();
+        } catch (_) {}
+      }
+    }
+  }
 }

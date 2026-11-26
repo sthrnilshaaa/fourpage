@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../l10n/l10n.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../aread.dart';
+import '../../data/pdf/pdf_document.dart';
 import '../state/library_controller.dart';
 import '../theme/app_colors.dart';
 import 'app_chrome.dart';
@@ -61,16 +62,26 @@ class BookCoverWidget extends StatelessWidget {
   }
 
   Future<Uint8List?> _loadCoverBytes(BookItem book) async {
-    final coverResource = book.publication.coverResource;
-    if (coverResource == null) return null;
+    final id = book.publication.id;
+    final library = LibraryController.instance;
 
     // Saved on an earlier launch: drawn before the book file is parsed.
-    final library = LibraryController.instance;
-    final cached = await library.readCachedCover(book.publication.id);
+    final cached = await library.readCachedCover(id);
     if (cached != null) return cached;
 
+    final coverResource = book.publication.coverResource;
+    if (coverResource == null) {
+      if (!book.isPdf) return null;
+      // PDFs have no manifest with a cover image: render their first page
+      // once and save it, like an EPUB cover extracted from the archive.
+      final file = await library.getBookFile(id, kind: BookFormat.pdf);
+      final bytes = await PdfDocumentHandle.renderCover(file.path);
+      if (bytes != null) await library.writeCachedCover(id, bytes);
+      return bytes;
+    }
+
     final bytes = await _extractCover(book, coverResource);
-    if (bytes != null && !book.isPdf) await library.writeCachedCover(book.publication.id, bytes);
+    if (bytes != null) await library.writeCachedCover(id, bytes);
     return bytes;
   }
 
