@@ -6,6 +6,12 @@ All notable changes to Fourpage. The format follows
 
 ## [Unreleased]
 
+## [1.0.10] - 2026-11-26
+
+### Added
+- PDF books now show a cover generated from their first page instead of a
+  plain gradient placeholder.
+
 ## [1.0.9] - 2026-10-28
 
 ### Fixed

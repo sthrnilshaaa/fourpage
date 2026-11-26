@@ -473,6 +473,7 @@ class LibraryController extends ChangeNotifier {
       folderPath: folderPath,
       pdfPage: saved?.locator.locations.position ?? 0,
       pdfProgress: (saved?.percentage ?? 0) / 100,
+      coverCached: (await _coverFile(pub.id)).existsSync(),
     );
   }
 
